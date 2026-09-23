@@ -1,29 +1,18 @@
-/* =====================================================
-   install-prompt.js — ComicCore PWA install nudges
-   (Phase 4 polish)
-   Loaded on every page, right after idb.js.
-
-   - Android / Chrome / other browsers that support it: listens for the
-     native `beforeinstallprompt` event, suppresses the default mini-infobar,
-     and shows our own bottom banner with an "Install" button that triggers
-     the real native install prompt when tapped.
-   - iOS Safari: there is no install API on iOS at all — Apple only supports
-     manual Share -> Add to Home Screen. So instead we show a bottom banner
-     with instructions, only in Safari on iOS, and only when not already
-     installed.
-   - Dismissing (X) remembers for 14 days so it's a gentle nudge, not nagging
-     on every single visit.
-   - Skipped entirely on pages with their own dense bottom UI (the editors,
-     the reader, scroll views) — those are exactly the screens where users
-     need every pixel for actual work, not a banner competing for space.
-   ===================================================== */
+/* install-prompt.js — pwa install nudges for spritomic, loads right after idb.js
+   - android/chrome: hijacks beforeinstallprompt, shows our own banner w/
+     an install button that triggers the real native prompt
+   - ios safari: no install api exists, so just show manual
+     share -> add to home screen instructions instead
+   - dismiss (x) sticks for 14 days, gentle nudge not nagging
+   - skipped on pages w/ crowded bottom UI (editors/reader/scroll views) */
 
 (function () {
+  // keeping the 'cc-' prefix here on purpose — renaming it would make
+  // everyone who already dismissed this see the banner pop up again
   const DISMISS_KEY = 'cc-install-dismissed-at';
   const DISMISS_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
-  // Pages where bottom screen space is already crowded with toolbars,
-  // sheets, or reading controls — install banner would just get in the way.
+  // pages where the bottom's already crowded w/ toolbars/sheets/controls
   const SKIP_PAGES = new Set([
     'create.html', 'create-mobile.html',
     'reader.html', 'toonscroll.html',
@@ -110,7 +99,7 @@
     const el = document.createElement('div');
     el.id = 'cc-install-banner';
     el.innerHTML =
-      '<div class="cc-install-icon">CC</div>' +
+      '<div class="cc-install-icon">SP</div>' +
       '<div class="cc-install-text">' +
         `<div class="cc-install-title">${title}</div>` +
         `<div class="cc-install-sub">${sub}</div>` +
@@ -134,13 +123,13 @@
     }
   }
 
-  // ---- Android / Chrome / other browsers with native install support ----
+  // ---- android/chrome/etc w/ native install support ----
   let deferredPrompt = null;
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
     showBanner({
-      title: 'Install ComicCore',
+      title: 'Install for Android',
       sub: 'Add it to your home screen for offline access',
       ctaLabel: 'Install',
       onCta: async () => {
@@ -152,24 +141,23 @@
     });
   });
 
-  // ---- iOS Safari (no install API — manual instructions only) ----
+  // ---- ios safari, no install api so just show manual instructions ----
   function isIOS() {
     return /iphone|ipad|ipod/i.test(navigator.userAgent) ||
-      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS 13+ reports as Mac
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // ipados 13+ reports as mac
   }
   function isSafariBrowser() {
     const ua = navigator.userAgent;
-    // Excludes Chrome/Firefox/Edge-on-iOS, which all still use WebKit under
-    // the hood but report their own UA token and lack install capability anyway.
+    // excludes chrome/firefox/edge-on-ios, same webkit engine but no install capability anyway
     return /safari/i.test(ua) && !/crios|fxios|edgios|opios/i.test(ua);
   }
 
   if (isIOS() && isSafariBrowser()) {
-    // Small delay so this doesn't fight the page's own boot/loading UI for attention.
+    // small delay so we don't fight the page's own boot UI for attention
     setTimeout(() => {
       if (isStandalone() || document.getElementById('cc-install-banner')) return;
       showBanner({
-        title: 'Install ComicCore',
+        title: 'Install for iOS',
         sub: 'Tap Share \u2197, then "Add to Home Screen"',
         ctaLabel: null,
         onCta: null,
