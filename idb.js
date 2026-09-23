@@ -1,44 +1,21 @@
-/* =====================================================
-   idb.js — ComicCore local/offline storage layer
-   Loaded on every page (right after dexie.min.js).
-
-   What this file does:
-   1. Defines the local IndexedDB schema (via Dexie) that
-      mirrors the shape of the 'comics' and 'drafts' Supabase
-      tables, so cached rows can be used as drop-in fallbacks.
-   2. Exposes window.CCOffline with simple cache/read helpers
-      that reader.html / my-comics.html / create.html call into.
-   3. Shows a small "You're offline" banner whenever the browser
-      loses connectivity, and hides it on reconnect.
-   4. Day 3 — sync queue: whenever a draft was saved locally while
-      offline (pending_sync: true), automatically pushes it to
-      Supabase as soon as the browser reconnects. Conflict policy
-      is "server wins": if the server's copy changed more recently
-      than the version we started our offline edit from, the local
-      pending edit is discarded in favor of the server's copy.
-
-   Note on naming: this is intentionally NOT called "saveOffline" —
-   that name is already used elsewhere in this codebase for the
-   cloud auto-save-to-drafts flow. Everything here is the actual
-   local-device storage layer.
-   ===================================================== */
+/* idb.js — offline storage for spritomic, load right after dexie.min.js
+   - local indexeddb mirror of the comics/drafts supabase tables
+   - window.CCOffline = the cache/read helpers everything else calls into
+   - shows/hides the "you're offline" banner
+   - sync queue: pushes offline drafts to supabase on reconnect, server
+     wins if it moved on while we were offline
+   (not called "saveOffline" bc that name's already taken elsewhere by
+   the cloud autosave-to-drafts flow) */
 
 (function () {
-  // ---------------------------------------------------
-  // 1. Local DB schema
-  // ---------------------------------------------------
+  // local db schema. keeping the old 'ComicCoreLocal' db name and the
+  // window.ComicCoreDB global on purpose — renaming either one orphans
+  // everyone's already-cached offline comics/drafts
   const db = new Dexie('ComicCoreLocal');
   db.version(3).stores({
-    // Published comics, cached for offline reading.
-    // pending_sync = true means this row was edited/created while
-    // offline and still needs to be pushed to Supabase (wired up Day 3).
-    comics: 'id, owner_handle, cached_at, pending_sync',
-    // In-progress drafts, mirrored from the existing cloud autosave.
-    drafts: 'id, owner_handle, updated_at, pending_sync',
-    // Asset libraries used by the editor's pickers. Each kept in its own
-    // table — sprites_library/backgrounds_library/effects_library are
-    // separate Supabase tables with their own independent id sequences,
-    // so the same numeric id could mean three different assets.
+    comics: 'id, owner_handle, cached_at, pending_sync', // pending_sync = edited offline, needs a push
+    drafts: 'id, owner_handle, updated_at, pending_sync', // mirrors the cloud autosave
+    // own table per asset type, same numeric id can mean 3 different things otherwise
     sprites: 'id, cached_at',
     backgrounds: 'id, cached_at',
     effects: 'id, cached_at',
@@ -46,24 +23,15 @@
 
   window.ComicCoreDB = db;
 
-  // ---------------------------------------------------
-  // 2a. ID normalization
-  // comics.id is a database-generated number (e.g. 42), but anything read
-  // from a URL (new URLSearchParams(...).get('id')) is always a string
-  // ("42"). IndexedDB keys are type-sensitive, so without this, a comic
-  // cached under the number 42 would never be found when looked up by the
-  // string "42" — every offline lookup would silently miss. drafts.id is a
-  // real UUID string (crypto.randomUUID()), which isNaN() correctly leaves
-  // untouched here.
-  // ---------------------------------------------------
+  // url params give ids as strings, indexeddb keys care about type, so
+  // "42" != 42 and lookups would silently miss. drafts use real uuids
+  // so isNaN() just leaves those alone
   function normalizeId(id) {
     if (typeof id === 'string' && id !== '' && !isNaN(id)) return Number(id);
     return id;
   }
 
-  // ---------------------------------------------------
-  // 2. Public helper API
-  // ---------------------------------------------------
+  // public helpers, called from reader/my-comics/create pages
   window.CCOffline = {
     // -- comics (published) --------------------------
     async cacheComic(comic) {
@@ -97,16 +65,14 @@
     async cacheDraft(draft) {
       if (!draft || !draft.id) return;
       try {
-        // Track the "baseline" updated_at — the last known-synced server
-        // value from before this offline edit started. Needed at sync time
-        // to detect whether the server moved on without us (server wins).
+        // baseline updated_at so sync can tell later if the server moved on without us
         let baseUpdatedAt;
         if (draft.pending_sync) {
           const existing = await db.drafts.get(draft.id);
           if (existing && existing.pending_sync && existing._base_updated_at) {
-            baseUpdatedAt = existing._base_updated_at; // preserve through repeated offline autosaves
+            baseUpdatedAt = existing._base_updated_at; // keep it through repeated offline saves
           } else {
-            baseUpdatedAt = (existing && existing.updated_at) || null; // null = brand new, created entirely offline
+            baseUpdatedAt = (existing && existing.updated_at) || null; // null = brand new, made offline
           }
         }
         await db.drafts.put({
@@ -126,9 +92,7 @@
     async cacheMyDrafts(handle, drafts) {
       if (!handle || !Array.isArray(drafts)) return;
       try {
-        // Don't clobber any draft that's still pending a local→cloud sync —
-        // the cloud list we just fetched predates that edit and would
-        // silently discard it if we wrote over it here.
+        // don't stomp drafts still waiting to sync, the fetched list predates that edit
         const existingPending = new Set(
           (await db.drafts.where('owner_handle').equals(handle).toArray())
             .filter((d) => d.pending_sync)
@@ -151,10 +115,8 @@
       catch (e) { console.warn('CCOffline.deleteCachedDraft failed:', e); }
     },
 
-    // -- sprite library (used by create.html's sprite picker) ----------
-    // Merges rather than overwrites: a metadata-only fetch (no image_data,
-    // e.g. the mobile editor's lighter query) should never erase image
-    // data we already cached for that sprite from an earlier fetch.
+    // -- sprite library (create.html's sprite picker) -------------------
+    // merge not overwrite, a metadata-only fetch shouldn't nuke image data we already have
     async cacheSpriteLibrary(sprites) {
       if (!Array.isArray(sprites) || !sprites.length) return;
       try {
@@ -272,23 +234,16 @@
       return typeof navigator !== 'undefined' ? navigator.onLine : true;
     },
 
-    // -- Day 3: sync queue -----------------------------
-    // Pushes any locally-saved drafts that haven't made it to Supabase yet
-    // (pending_sync: true). Safe to call any time — no-ops if offline or if
-    // the Supabase SDK isn't loaded on this page.
+    // -- sync queue --------------------------------------
+    // pushes pending offline drafts to supabase, no-ops if offline or no sdk
     async syncPendingDrafts() {
       return syncPendingDrafts();
     },
   };
 
-  // ---------------------------------------------------
-  // 2b. Dedicated sync client
-  // This is intentionally a SEPARATE client instance from whatever
-  // `_supabase`/`_sb` a given page declares for itself — those are page-local
-  // `const`s, not reliably reachable from here. Multiple client instances
-  // against the same project are completely safe; this one is only ever
-  // used for the background sync queue below.
-  // ---------------------------------------------------
+  // own supabase client just for the sync queue below — pages' own
+  // _sb/_supabase consts aren't reachable from here, and multiple client
+  // instances against the same project are totally fine
   const SUPABASE_URL = 'https://mmycqeejhguzhtzkyjaj.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_8Du2GAcH5oBeiHWe-1e0Fg_XtSub2QE';
   let _syncClient = null;
@@ -320,9 +275,7 @@
 
       for (const draft of pending) {
         try {
-          // Check the server's current state before pushing — this is the
-          // "server wins" conflict check. If the server's row moved on since
-          // we started this offline edit, our local edit loses.
+          // server-wins check — if it moved on since our offline edit started, we lose
           const { data: serverRow } = await client
             .from('drafts').select('updated_at').eq('id', draft.id).maybeSingle();
 
@@ -331,7 +284,7 @@
             serverRow && baseline && new Date(serverRow.updated_at) > new Date(baseline);
 
           if (serverMovedOn) {
-            // CONFLICT — pull the full server row, discard our pending edit.
+            // conflict, toss our edit and take the server's copy
             const { data: full } = await client.from('drafts').select('*').eq('id', draft.id).maybeSingle();
             if (full) await db.drafts.put({ ...full, cached_at: Date.now(), pending_sync: false, _base_updated_at: undefined });
             else await db.drafts.delete(draft.id);
@@ -339,7 +292,7 @@
             continue;
           }
 
-          // No conflict — push our local version.
+          // no conflict, push ours
           const row = {
             id: draft.id,
             owner_handle: draft.owner_handle,
@@ -356,7 +309,7 @@
           pushed++;
         } catch (e) {
           console.warn('Sync failed for draft', draft.id, '— will retry next time:', e);
-          // Leave pending_sync as-is; next reconnect (or page load) retries it.
+          // leave pending_sync alone, it'll retry next reconnect/load
         }
       }
     } finally {
@@ -380,11 +333,7 @@
     setTimeout(() => { t.classList.remove('cc-show'); setTimeout(() => t.remove(), 300); }, 4000);
   }
 
-  // ---------------------------------------------------
-  // 3. Offline status banner (self-contained — no
-  //    dependency on theme.css, since not every page
-  //    loads it)
-  // ---------------------------------------------------
+  // offline banner, self-contained since not every page loads theme.css
   function injectBannerStyles() {
     if (document.getElementById('cc-offline-style')) return;
     const style = document.createElement('style');
@@ -498,10 +447,9 @@
     document.addEventListener('DOMContentLoaded', updateBanner);
   }
 
-  // Also try once on page load — covers the case where pending offline
-  // edits are sitting from a previous session and the page is now opened
-  // while already online (no 'online' event fires in that case).
+  // also try once on load — covers pending edits from a previous session
+  // where we're already online and no 'online' event ever fires
   if (navigator.onLine) {
-    setTimeout(syncPendingDrafts, 1500); // small delay so the page finishes its own boot first
+    setTimeout(syncPendingDrafts, 1500); // let the page finish booting first
   }
 })();

@@ -1,20 +1,15 @@
-// ComicCore service worker — PWA Day 1 + Day 2 (offline comics)
-// Strategy:
-//  - HTML pages: network-first (always get your latest edits when online),
-//    fall back to cache when offline.
-//  - CSS/JS/icons: cache-first, refreshed in the background.
-//  - Supabase REST/Auth/Realtime calls: never cached, always go straight to
-//    the network. Auth/data calls must never be served stale.
-//  - Supabase Storage (comic snapshots, sprites, backgrounds): cache-first,
-//    refreshed in the background — this is what actually makes comic
-//    *artwork* viewable offline, not just metadata.
+// sw.js — offline support for spritomic
+// html = network-first w/ cache fallback, static assets = cache-first,
+// supabase api calls never cached (auth/data can't go stale), supabase
+// storage (art/sprites/backgrounds) = cache-first so offline reading
+// actually works, not just the metadata
 
 const CACHE_VERSION = 'v3';
+// keeping the 'comiccore-' prefix here on purpose — changing it would get
+// deleted as a stale cache on next activate and wipe everyone's offline art
 const CACHE_NAME = `comiccore-${CACHE_VERSION}`;
 
-// Small "app shell" — safe, fast things to have ready before first paint.
-// Intentionally NOT precaching the big editor pages (create.html, etc.) —
-// those get cached automatically the first time you visit them instead.
+// bare minimum app shell, big editor pages just cache themselves on first visit
 const PRECACHE_URLS = [
   'manifest.json',
   'theme.css',
@@ -32,10 +27,9 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// The app posts { type: 'PURGE_STORAGE_PATH', path } (see purgeCachedAsset() in
-// my-comics-mobile.html) whenever a comic/draft's storage asset is deleted.
-// Without this listener that message went nowhere, so the old cached image
-// kept being served cache-first even after the underlying file was gone.
+// app pings us w/ PURGE_STORAGE_PATH when an asset gets deleted (see
+// purgeCachedAsset() in my-comics-mobile.html), otherwise we'd keep
+// serving the stale cached image forever
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'PURGE_STORAGE_PATH' && event.data.path) {
     event.waitUntil(
@@ -64,24 +58,21 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Only ever handle GET requests.
+  // only care about GET
   if (req.method !== 'GET') return;
 
   const isSupabase = url.hostname.endsWith('.supabase.co');
 
   if (isSupabase) {
-    // REST/Auth/Realtime calls must always hit the network live — never cache
-    // auth tokens, query results, or anything that can go stale and lie to the app.
+    // never cache rest/auth/realtime, can't let those go stale and lie to the app
     const isLiveApi =
       url.pathname.includes('/rest/') ||
       url.pathname.includes('/auth/') ||
       url.pathname.includes('/realtime/');
     if (isLiveApi) return;
 
-    // Everything else on a Supabase host is Storage — actual comic artwork,
-    // frame snapshots, sprites, backgrounds. These are static files, safe (and
-    // valuable) to cache so comics can actually be *read* offline, not just
-    // have their metadata available. Cache-first, refreshed in the background.
+    // everything else on supabase is Storage (art, frames, sprites, etc) —
+    // cache-first so comics are actually readable offline, not just listed
     event.respondWith(
       caches.match(req).then((cached) => {
         const networkFetch = fetch(req)
@@ -97,7 +88,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Anything else cross-origin (fonts, etc.) — pass straight through.
+  // other origins (fonts etc) just pass through
   if (url.origin !== location.origin) return;
 
   const isHTML =
@@ -118,8 +109,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: serve from cache instantly if we have it, refresh in the
-  // background either way so next time it's up to date.
+  // static stuff: serve cached instantly, refresh in bg either way
   event.respondWith(
     caches.match(req).then((cached) => {
       const networkFetch = fetch(req)
