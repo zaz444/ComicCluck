@@ -4,7 +4,7 @@
 // storage (art/sprites/backgrounds) = cache-first so offline reading
 // actually works, not just the metadata
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 // keeping the 'comiccore-' prefix here on purpose — changing it would get
 // deleted as a stale cache on next activate and wipe everyone's offline art
 const CACHE_NAME = `comiccore-${CACHE_VERSION}`;
