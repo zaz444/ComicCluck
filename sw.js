@@ -1,8 +1,10 @@
 // sw.js — offline support for spritomic
-// html = network-first w/ cache fallback, static assets = cache-first,
-// supabase api calls never cached (auth/data can't go stale), supabase
-// storage (art/sprites/backgrounds) = cache-first so offline reading
-// actually works, not just the metadata
+// html + own-origin js/css = network-first w/ cache fallback (so a GitHub
+// push shows up on the very next online load instead of one load behind;
+// falls back to cache when offline), icons/manifest = cache-first (rarely
+// change), supabase api calls never cached (auth/data can't go stale),
+// supabase storage (art/sprites/backgrounds) = cache-first so offline
+// reading actually works, not just the metadata
 
 const CACHE_VERSION = 'v4';
 // keeping the 'comiccore-' prefix here on purpose — changing it would get
@@ -54,6 +56,10 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// our own app code — behavior-affecting, so it should never sit stale
+// behind a GitHub Pages deploy the way an image can
+const isOwnCode = (pathname) => /\.(js|css)$/i.test(pathname);
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
@@ -94,7 +100,10 @@ self.addEventListener('fetch', (event) => {
   const isHTML =
     req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
 
-  if (isHTML) {
+  if (isHTML || isOwnCode(url.pathname)) {
+    // network-first: always try to get the live file when online (so a
+    // deploy is visible immediately), fall back to whatever's cached (or
+    // the app shell, for navigations) when there's no connection
     event.respondWith(
       fetch(req, { cache: 'no-store' })
         .then((res) => {
@@ -103,13 +112,14 @@ self.addEventListener('fetch', (event) => {
           return res;
         })
         .catch(() =>
-          caches.match(req).then((cached) => cached || caches.match('index.html'))
+          caches.match(req).then((cached) => cached || (isHTML ? caches.match('index.html') : undefined))
         )
     );
     return;
   }
 
-  // static stuff: serve cached instantly, refresh in bg either way
+  // everything else static (icons, images, manifest, fonts): serve cached
+  // instantly, refresh in bg either way
   event.respondWith(
     caches.match(req).then((cached) => {
       const networkFetch = fetch(req)
