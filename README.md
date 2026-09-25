@@ -1,4 +1,4 @@
-# Spritomic App
+# ComicCluck App
 If you are curious about development or the community here are our Discord servers:
 
 Community Server:
