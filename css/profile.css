@@ -1,4 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Regular.woff') format('woff'),
+       url('../fonts/AnimeAce2-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Bold.woff') format('woff'),
+       url('../fonts/AnimeAce2-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Italic.woff') format('woff'),
+       url('../fonts/AnimeAce2-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
 :root {
@@ -15,7 +41,7 @@
 }
 
 body {
-    margin: 0; font-family: 'Inter', sans-serif;
+    margin: 0; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
     background: var(--bg); color: var(--text);
     overflow-x: hidden; padding-bottom: 0;
     min-height: 100dvh;
@@ -214,9 +240,9 @@ body {
 .playlist-comic-remove { color: var(--muted); font-size: 12px; font-weight: 700; padding: 6px 8px; cursor: pointer; flex-shrink: 0; }
 
 /* ── Playlist edit form ── */
-.pl-title-input { width: 100%; background: #111; border: 1.5px solid var(--border); color: var(--text); padding: 12px 14px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; margin-bottom: 12px; }
+.pl-title-input { width: 100%; background: #111; border: 1.5px solid var(--border); color: var(--text); padding: 12px 14px; border-radius: 12px; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 14px; outline: none; margin-bottom: 12px; }
 .pl-title-input:focus { border-color: rgba(var(--accent-rgb),0.5); }
-.pl-search-input { width: 100%; background: #111; border: 1.5px solid var(--border); color: var(--text); padding: 11px 14px; border-radius: 12px; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; margin-bottom: 8px; }
+.pl-search-input { width: 100%; background: #111; border: 1.5px solid var(--border); color: var(--text); padding: 11px 14px; border-radius: 12px; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 13px; outline: none; margin-bottom: 8px; }
 .pl-search-results { max-height: 160px; overflow-y: auto; margin-bottom: 10px; }
 .pl-search-row { display: flex; align-items: center; gap: 10px; padding: 8px 4px; cursor: pointer; }
 .pl-search-row:active { background: rgba(var(--accent-rgb),0.06); }
@@ -323,7 +349,7 @@ body {
     cursor: pointer; transition: background .15s;
     border-bottom: 1px solid var(--border);
     background: none; border-left: none; border-right: none; border-top: none;
-    width: 100%; text-align: left; font-family: 'Inter', sans-serif;
+    width: 100%; text-align: left; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .settings-menu-row:last-child { border-bottom: none; }
 .settings-menu-row:hover { background: rgba(255,255,255,0.05); }
@@ -392,7 +418,7 @@ body {
     border: 1px solid rgba(255,152,0,0.45);
     background: transparent; color: #ff9800;
     font-size: 12px; font-weight: 800; cursor: pointer;
-    font-family: 'Inter', sans-serif; white-space: nowrap;
+    font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; white-space: nowrap;
     transition: .15s;
 }
 #unsaved-banner .unsaved-save-btn:hover {
@@ -414,7 +440,7 @@ body {
     background: var(--accent); color: #000;
     font-size: 13px; font-weight: 800;
     border: none; cursor: pointer;
-    font-family: 'Inter', sans-serif;
+    font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
     transition: .15s;
 }
 .btn-save:hover { background: rgba(var(--accent-rgb), 0.85); transform: translateY(-1px); }
@@ -464,7 +490,7 @@ body {
 .glass-input, .glass-textarea {
     width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--border);
     border-radius: 12px; padding: 12px 14px; color: white;
-    font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+    font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 14px; font-weight: 500;
     outline: none; transition: border-color .15s, background .15s;
 }
 .glass-input::placeholder, .glass-textarea::placeholder { color: var(--dim); }
@@ -488,7 +514,7 @@ body {
     padding: 6px 14px; border-radius: 8px;
     background: rgba(var(--accent-rgb),0.15); border: 1px solid rgba(var(--accent-rgb),0.35);
     color: var(--accent); font-size: 11px; font-weight: 800;
-    cursor: pointer; transition: .15s; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: .15s; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .settings-btn-sm:hover { background: rgba(var(--accent-rgb),0.25); }
 
@@ -589,7 +615,7 @@ body {
 .social-card-hint { font-size: 9px; font-weight: 600; color: var(--dim); }
 .social-card input {
     flex: 1; background: none; border: none; outline: none;
-    color: white; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; min-width: 0;
+    color: white; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 13px; font-weight: 600; min-width: 0;
 }
 .social-card input::placeholder { color: var(--dim); font-weight: 500; }
 
@@ -630,7 +656,7 @@ body {
     width: 100%; padding: 12px; border-radius: 12px;
     border: 1px solid rgba(255,59,48,0.3); background: rgba(255,59,48,0.07);
     color: #ff3b30; font-size: 13px; font-weight: 800; cursor: pointer;
-    font-family: 'Inter', sans-serif; transition: .15s;
+    font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s;
 }
 .settings-danger-btn:hover { background: rgba(255,59,48,0.15); }
 
@@ -727,14 +753,14 @@ body {
     flex: 1; padding: 13px; border-radius: 14px;
     border: 1px solid var(--border); background: rgba(255,255,255,0.05);
     color: white; font-size: 13px; font-weight: 800;
-    cursor: pointer; text-align: center; transition: .15s; font-family: 'Inter', sans-serif;
+    cursor: pointer; text-align: center; transition: .15s; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .share-action-btn:hover { border-color: var(--accent); color: var(--accent); }
 .share-action-btn span { display: block; font-size: 20px; margin-bottom: 4px; }
 .sheet-cancel-btn {
     width: 100%; margin-top: 10px; padding: 12px; border-radius: 14px;
     background: none; border: 1px solid var(--border); color: #555;
-    font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: .12s;
+    font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .12s;
 }
 .sheet-cancel-btn:hover { border-color: #444; color: #888; }
 
@@ -743,7 +769,7 @@ body {
 .pfp-source-btn {
     flex: 1; padding: 14px; border-radius: 14px; border: 1px solid var(--border);
     background: rgba(255,255,255,0.05); color: white; font-size: 13px; font-weight: 800;
-    cursor: pointer; text-align: center; transition: .15s; font-family: 'Inter', sans-serif;
+    cursor: pointer; text-align: center; transition: .15s; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .pfp-source-btn:hover { border-color: var(--accent); color: var(--accent); }
 .pfp-source-btn span { display: block; font-size: 22px; margin-bottom: 5px; }
@@ -752,7 +778,7 @@ body {
 .pfp-gallery-item:hover { border-color: var(--accent); transform: scale(1.05); }
 .pfp-gallery-item.selected { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),.3); }
 .pfp-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pfp-gallery-confirm { width: 100%; margin-top: 14px; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #000; font-size: 14px; font-weight: 900; cursor: pointer; display: none; font-family: 'Inter', sans-serif; }
+.pfp-gallery-confirm { width: 100%; margin-top: 14px; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #000; font-size: 14px; font-weight: 900; cursor: pointer; display: none; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 .pfp-gallery-confirm.visible { display: block; }
 
 /* PFP crop */
@@ -776,7 +802,7 @@ body {
 .crop-source { display: block; width: 100%; user-select: none; pointer-events: none; }
 .crop-frame { position: absolute; border: 2px solid var(--accent); box-shadow: 0 0 0 9999px rgba(0,0,0,0.6); pointer-events: none; display: none; }
 .crop-actions { display: flex; gap: 12px; margin-top: 20px; }
-.crop-btn { padding: 12px 30px; border-radius: 20px; border: none; font-weight: 800; cursor: pointer; font-size: 14px; font-family: 'Inter', sans-serif; }
+.crop-btn { padding: 12px 30px; border-radius: 20px; border: none; font-weight: 800; cursor: pointer; font-size: 14px; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 .crop-btn-confirm { background: var(--accent); color: #000; }
 .crop-btn-cancel { background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border); }
 
@@ -794,7 +820,7 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .admin-status-bar.paused { background: rgba(255,152,0,0.1); border: 1px solid rgba(255,152,0,0.25); color: #ffcc00; }
 .admin-status-bar.banned { background: rgba(255,59,48,0.1); border: 1px solid rgba(255,59,48,0.25); color: #ff3b30; }
 .admin-action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.admin-btn { padding: 9px 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text); font-size: 11px; font-weight: 800; cursor: pointer; font-family: 'Inter', sans-serif; transition: .15s; text-align: center; }
+.admin-btn { padding: 9px 10px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: var(--text); font-size: 11px; font-weight: 800; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s; text-align: center; }
 .admin-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.18); }
 .admin-btn.danger { color: #ff3b30; border-color: rgba(255,59,48,0.25); }
 .admin-btn.danger:hover { background: rgba(255,59,48,0.12); border-color: rgba(255,59,48,0.5); }
@@ -815,25 +841,25 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .ban-title.is-ban  { color: #ff3b30; }
 .ban-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
 .ban-mode-tabs { display: flex; gap: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); margin-bottom: 16px; }
-.ban-mode-tab { flex: 1; padding: 9px; text-align: center; font-size: 11px; font-weight: 900; cursor: pointer; background: rgba(255,255,255,0.03); color: var(--muted); border: none; font-family: 'Inter', sans-serif; transition: .15s; letter-spacing: .3px; }
+.ban-mode-tab { flex: 1; padding: 9px; text-align: center; font-size: 11px; font-weight: 900; cursor: pointer; background: rgba(255,255,255,0.03); color: var(--muted); border: none; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s; letter-spacing: .3px; }
 .ban-mode-tab.active-pause { background: rgba(255,152,0,0.12); color: #ff9800; }
 .ban-mode-tab.active-ban   { background: rgba(255,59,48,0.12);  color: #ff3b30; }
 .ban-section-label { font-size: 9px; font-weight: 900; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px; }
 .ban-duration-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 7px; margin-bottom: 14px; }
-.ban-dur-btn { padding: 10px 6px; border-radius: 12px; border: 1.5px solid var(--border); background: rgba(255,255,255,0.04); color: var(--muted); font-size: 10px; font-weight: 800; cursor: pointer; font-family: 'Inter', sans-serif; transition: .15s; text-align: center; line-height: 1.3; }
+.ban-dur-btn { padding: 10px 6px; border-radius: 12px; border: 1.5px solid var(--border); background: rgba(255,255,255,0.04); color: var(--muted); font-size: 10px; font-weight: 800; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s; text-align: center; line-height: 1.3; }
 .ban-dur-btn .dur-sub { font-size: 8px; font-weight: 600; opacity: .65; margin-top: 2px; }
 .ban-dur-btn:hover { background: rgba(255,255,255,0.08); }
 .ban-dur-btn.sel-pause { border-color: #ff9800; color: #ff9800; background: rgba(255,152,0,0.1); }
 .ban-dur-btn.sel-ban   { border-color: #ff3b30; color: #ff3b30; background: rgba(255,59,48,0.1);  }
-.ban-reason-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 12px; padding: 11px 14px; color: white; font-family: 'Inter', sans-serif; font-size: 13px; outline: none; transition: border-color .15s; margin-bottom: 14px; resize: vertical; min-height: 68px; }
+.ban-reason-input { width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 12px; padding: 11px 14px; color: white; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 13px; outline: none; transition: border-color .15s; margin-bottom: 14px; resize: vertical; min-height: 68px; }
 .ban-reason-input:focus { border-color: rgba(var(--accent-rgb),0.4); }
 .ban-reason-input::placeholder { color: var(--dim); }
 .ban-actions { display: flex; gap: 10px; }
-.ban-confirm-btn { flex: 1; padding: 13px; border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 900; cursor: pointer; font-family: 'Inter', sans-serif; transition: .15s; }
+.ban-confirm-btn { flex: 1; padding: 13px; border: none; border-radius: 12px; color: white; font-size: 14px; font-weight: 900; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s; }
 .ban-confirm-btn.mode-pause { background: #ff9800; color: #000; }
 .ban-confirm-btn.mode-ban   { background: #ff3b30; }
 .ban-confirm-btn:hover { filter: brightness(1.08); }
-.ban-cancel-btn { padding: 13px 18px; border: 1px solid var(--border); border-radius: 12px; background: none; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+.ban-cancel-btn { padding: 13px 18px; border: 1px solid var(--border); border-radius: 12px; background: none; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 
 .banlog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 5000; display: none; align-items: flex-end; justify-content: center; backdrop-filter: blur(14px); }
 .banlog-overlay.open { display: flex; }
@@ -858,9 +884,9 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .report-title { font-size: 15px; font-weight: 900; margin-bottom: 4px; }
 .report-sub { font-size: 12px; color: var(--muted); margin-bottom: 18px; }
 .report-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
-.report-opt { padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; transition: .15s; text-align: left; }
+.report-opt { padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--border); background: rgba(255,255,255,0.04); color: var(--text); font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s; text-align: left; }
 .report-opt:hover, .report-opt.selected { border-color: var(--accent); color: var(--accent); background: rgba(var(--accent-rgb),0.07); }
-.report-submit-btn { width: 100%; padding: 13px; border: none; border-radius: 12px; background: var(--accent); color: #000; font-size: 14px; font-weight: 900; cursor: pointer; font-family: 'Inter', sans-serif; margin-bottom: 8px; }
+.report-submit-btn { width: 100%; padding: 13px; border: none; border-radius: 12px; background: var(--accent); color: #000; font-size: 14px; font-weight: 900; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; margin-bottom: 8px; }
 .report-submit-btn:disabled { opacity: .45; cursor: not-allowed; }
 
 .invite-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 5000; display: none; align-items: flex-end; justify-content: center; }
@@ -869,10 +895,10 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .squad-invite-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
 .squad-invite-name { font-size: 14px; font-weight: 700; }
 .squad-invite-sub { font-size: 11px; color: var(--muted); }
-.squad-invite-btn { padding: 7px 16px; border-radius: 20px; border: none; background: var(--accent); color: #000; font-size: 12px; font-weight: 800; cursor: pointer; font-family: 'Inter', sans-serif; flex-shrink: 0; }
+.squad-invite-btn { padding: 7px 16px; border-radius: 20px; border: none; background: var(--accent); color: #000; font-size: 12px; font-weight: 800; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; flex-shrink: 0; }
 .squad-invite-btn:disabled { background: rgba(255,255,255,0.1); color: var(--muted); cursor: default; }
 
-.small-action-btn { padding: 7px 13px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-b); color: rgba(255,255,255,0.55); font-weight: 700; font-size: 12px; cursor: pointer; transition: .15s; font-family: 'Inter', sans-serif; }
+.small-action-btn { padding: 7px 13px; border-radius: 20px; background: rgba(255,255,255,0.06); border: 1px solid var(--glass-b); color: rgba(255,255,255,0.55); font-weight: 700; font-size: 12px; cursor: pointer; transition: .15s; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 .small-action-btn:hover { background: rgba(255,255,255,0.11); color: white; }
 .small-action-btn.blocked { color: #ff3b30; border-color: rgba(255,59,48,0.35); background: rgba(255,59,48,0.08); }
 

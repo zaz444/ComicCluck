@@ -1,3 +1,29 @@
+/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Regular.woff') format('woff'),
+       url('../fonts/AnimeAce2-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Bold.woff') format('woff'),
+       url('../fonts/AnimeAce2-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Italic.woff') format('woff'),
+       url('../fonts/AnimeAce2-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* create-mobile.css — pulled the styles out of the html, same deal as the js */
     :root {
         --bg: #0f0f11; --card: #1c1c1e; --text: #f5f5f7;
@@ -8,7 +34,7 @@
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
     body {
-        margin: 0; font-family: 'Inter', sans-serif;
+        margin: 0; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
         background: var(--bg); color: var(--text);
         overflow: hidden; display: flex; flex-direction: column;
         height: 100vh; height: 100dvh; /* fallback until JS measures the real height */

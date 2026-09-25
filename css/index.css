@@ -1,3 +1,29 @@
+/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Regular.woff') format('woff'),
+       url('../fonts/AnimeAce2-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Bold.woff') format('woff'),
+       url('../fonts/AnimeAce2-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Italic.woff') format('woff'),
+       url('../fonts/AnimeAce2-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -19,7 +45,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   background-color: var(--bg);
   background-image: radial-gradient(rgba(var(--accent-rgb),0.18) 1.4px, transparent 1.4px);
   background-size: 18px 18px;
@@ -61,7 +87,7 @@ body {
   background: url('https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/uibuttons/thepapercover.png') center / cover no-repeat;
   border-radius: 20px; padding: 22px 20px;
   display: flex; align-items: center; justify-content: space-between;
-  cursor: pointer; border: none; font-family: 'Inter', sans-serif;
+  cursor: pointer; border: none; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(var(--accent-rgb),0.3);
   transition: filter 0.2s ease; margin-bottom: 12px;
   position: relative; overflow: hidden;
@@ -78,7 +104,7 @@ body {
 .nav-card {
   background: var(--orange); border: 1.5px solid var(--orange);
   border-radius: 16px; padding: 18px 14px;
-  cursor: pointer; text-align: left; font-family: 'Inter', sans-serif;
+  cursor: pointer; text-align: left; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   display: flex; flex-direction: column; gap: 5px;
   transition: all 0.18s ease;
   box-shadow: 0 2px 12px rgba(0,0,0,0.3);
@@ -108,7 +134,7 @@ body {
   width: 100%; margin-top: 14px;
   background: transparent; border: 1px solid var(--border); color: var(--text-dim);
   padding: 13px; border-radius: 12px; cursor: pointer;
-  font-size: 13px; font-weight: 700; font-family: 'Inter', sans-serif;
+  font-size: 13px; font-weight: 700; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   transition: all 0.18s ease;
 }
 .signout-btn:hover { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: #f87171; }
@@ -130,7 +156,7 @@ body {
   border-radius: 14px; padding: 12px 6px; cursor: pointer; font-weight: 800;
   font-size: 12px; text-align: center; transition: all 0.2s ease;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px; min-height: 75px; font-family: 'Inter', sans-serif;
+  gap: 8px; min-height: 75px; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .ratio-btn:hover { border-color: var(--orange); color: var(--orange); background: var(--card2); }
 .ratio-preview { background: var(--card2); border: 1.5px solid var(--border); border-radius: 3px; transition: 0.2s; }
@@ -138,7 +164,7 @@ body {
 .ratio-cancel {
   background: var(--card); border: 1px solid var(--border); color: var(--text-muted);
   padding: 12px 32px; border-radius: 50px; cursor: pointer;
-  font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; transition: 0.2s;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 14px; font-weight: 700; transition: 0.2s;
 }
 .ratio-cancel:hover { background: var(--card2); color: var(--text); }
 
@@ -147,13 +173,13 @@ body {
   z-index: 10000; display: none; flex-direction: column;
   align-items: center; justify-content: center; gap: 24px;
   backdrop-filter: blur(20px); padding: 30px;
-  font-family: 'Inter', sans-serif; animation: fadeIn 0.25s ease-out;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; animation: fadeIn 0.25s ease-out;
 }
 .mode-btn {
   flex: 1; background: var(--card); border: 1.5px solid var(--border); color: var(--text);
   border-radius: 20px; padding: 30px 16px; cursor: pointer;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
-  transition: all 0.25s ease; font-family: 'Inter', sans-serif;
+  transition: all 0.25s ease; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   box-shadow: 0 4px 16px rgba(0,0,0,0.3);
 }
 .mode-btn:hover { background: var(--card2); }
@@ -163,7 +189,7 @@ body {
   z-index: 9998; display: none; flex-direction: column;
   align-items: center; justify-content: center; gap: 20px;
   backdrop-filter: blur(20px); padding: 30px;
-  font-family: 'Inter', sans-serif; animation: fadeIn 0.25s ease-out;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; animation: fadeIn 0.25s ease-out;
 }
 
 /* ── INBOX / MAIL BUTTON ── */
@@ -236,12 +262,12 @@ body {
 .inbox-accept-btn {
   padding: 6px 14px; border-radius: 20px; border: none;
   background: var(--orange); color: #000; font-size: 11px; font-weight: 800;
-  cursor: pointer; font-family: 'Inter', sans-serif;
+  cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .inbox-decline-btn {
   padding: 6px 12px; border-radius: 20px;
   border: 1px solid var(--border); background: none; color: var(--text-muted);
-  font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 700; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .inbox-read-toggle {
   display: inline-block; font-size: 10px; font-weight: 800; color: var(--orange);
@@ -269,14 +295,14 @@ body {
 .reports-tab {
   padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border);
   background: none; color: var(--text-dim); font-size: 10px; font-weight: 800;
-  cursor: pointer; font-family: 'Inter', sans-serif; transition: 0.15s; white-space: nowrap;
+  cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: 0.15s; white-space: nowrap;
 }
 .reports-tab.active { background: rgba(255,59,48,0.12); color: #ff6b5b; border-color: rgba(255,59,48,0.3); }
 .reports-refresh-btn {
   width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--card2); color: var(--text-muted); font-size: 14px;
   cursor: pointer; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; transition: 0.15s; font-family: 'Inter', sans-serif;
+  flex-shrink: 0; transition: 0.15s; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .reports-refresh-btn:hover { background: #303038; color: var(--text); }
 .reports-refresh-btn.spinning { animation: spin 0.6s linear infinite; }
@@ -312,7 +338,7 @@ body {
 .report-action-btn {
   padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border);
   background: var(--card2); color: var(--text-muted);
-  font-size: 10px; font-weight: 800; cursor: pointer; font-family: 'Inter', sans-serif;
+  font-size: 10px; font-weight: 800; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   transition: 0.15s; flex: 1; text-align: center;
 }
 .report-action-btn.primary { background: rgba(255,59,48,0.1); color: #ff6b5b; border-color: rgba(255,59,48,0.3); }

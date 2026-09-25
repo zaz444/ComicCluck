@@ -1,4 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Regular.woff') format('woff'),
+       url('../fonts/AnimeAce2-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Bold.woff') format('woff'),
+       url('../fonts/AnimeAce2-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Italic.woff') format('woff'),
+       url('../fonts/AnimeAce2-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
 :root {
@@ -17,7 +43,7 @@
 }
 
 body {
-    margin: 0; font-family: 'Inter', sans-serif;
+    margin: 0; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
     background: var(--bg); color: var(--text);
     overflow: hidden; height: 100dvh;
 }
@@ -82,7 +108,7 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
     cursor: pointer; transition: background .15s;
     border-bottom: 1px solid var(--border);
     background: none; border-left: none; border-right: none; border-top: none;
-    width: 100%; text-align: left; font-family: 'Inter', sans-serif;
+    width: 100%; text-align: left; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .settings-menu-row:last-child { border-bottom: none; }
 .settings-menu-row:hover { background: rgba(255,255,255,0.05); }
@@ -171,7 +197,7 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
     padding: 6px 14px; border-radius: 8px;
     background: rgba(var(--accent-rgb),0.15); border: 1px solid rgba(var(--accent-rgb),0.35);
     color: var(--accent); font-size: 11px; font-weight: 800;
-    cursor: pointer; transition: .15s; font-family: 'Inter', sans-serif;
+    cursor: pointer; transition: .15s; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
 }
 .settings-btn-sm:hover { background: rgba(var(--accent-rgb),0.25); }
 
@@ -230,7 +256,7 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .glass-input, .glass-textarea {
     width: 100%; background: rgba(255,255,255,0.06); border: 1px solid var(--border);
     border-radius: 12px; padding: 13px 15px; color: white;
-    font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
+    font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 15px; font-weight: 500;
     outline: none; transition: border-color .15s, background .15s;
 }
 .glass-input::placeholder, .glass-textarea::placeholder { color: var(--dim); }
@@ -265,7 +291,7 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .social-card-hint { font-size: 9px; font-weight: 600; color: var(--dim); }
 .social-card input {
     flex: 1; background: none; border: none; outline: none;
-    color: white; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; min-width: 0;
+    color: white; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-size: 14px; font-weight: 600; min-width: 0;
 }
 .social-card input::placeholder { color: var(--dim); font-weight: 500; }
 
@@ -305,7 +331,7 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
     width: 100%; padding: 15px; border-radius: 12px;
     border: 1px solid rgba(255,59,48,0.3); background: rgba(255,59,48,0.07);
     color: #ff3b30; font-size: 14px; font-weight: 800; cursor: pointer;
-    font-family: 'Inter', sans-serif; transition: .15s; margin-bottom: 10px;
+    font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s; margin-bottom: 10px;
 }
 .settings-danger-btn:hover { background: rgba(255,59,48,0.15); border-color: rgba(255,59,48,0.5); }
 
@@ -356,14 +382,14 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .unsaved-save-btn {
     padding: 7px 18px; border-radius: 10px; border: 1px solid rgba(255,152,0,0.45);
     background: transparent; color: #ff9800; font-size: 12px; font-weight: 800;
-    cursor: pointer; font-family: 'Inter', sans-serif; white-space: nowrap; transition: .15s;
+    cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; white-space: nowrap; transition: .15s;
 }
 .unsaved-save-btn:hover { background: rgba(255,152,0,0.15); }
 
 .btn-save {
     padding: 13px 32px; border-radius: 12px; background: var(--accent); color: #000;
     font-size: 14px; font-weight: 800; border: none; cursor: pointer;
-    font-family: 'Inter', sans-serif; transition: .15s;
+    font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; transition: .15s;
 }
 .btn-save:hover { filter: brightness(1.08); transform: translateY(-1px); }
 
@@ -387,7 +413,7 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .pfp-crop-img { position: absolute; transform-origin: center center; user-select: none; pointer-events: none; }
 .pfp-crop-zoom { width: 200px; accent-color: var(--accent); margin: 10px 0 20px; }
 .crop-actions { display: flex; gap: 12px; }
-.crop-btn { padding: 13px 32px; border-radius: 20px; border: none; font-weight: 800; cursor: pointer; font-size: 14px; font-family: 'Inter', sans-serif; }
+.crop-btn { padding: 13px 32px; border-radius: 20px; border: none; font-weight: 800; cursor: pointer; font-size: 14px; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 .crop-btn-confirm { background: var(--accent); color: #000; }
 .crop-btn-cancel { background: rgba(255,255,255,0.08); color: white; border: 1px solid var(--border); }
 
@@ -407,16 +433,16 @@ nav[class], footer, .bottom-nav, .nav-bar, #bottom-nav, #nav-bar, .tab-bar { dis
 .modal-close { color: #444; font-size: 20px; cursor: pointer; }
 .modal-close:hover { color: #aaa; }
 .pfp-source-btns { display: flex; gap: 10px; margin-bottom: 20px; }
-.pfp-source-btn { flex: 1; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white; font-size: 13px; font-weight: 800; cursor: pointer; text-align: center; transition: .15s; font-family: 'Inter', sans-serif; }
+.pfp-source-btn { flex: 1; padding: 14px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,0.05); color: white; font-size: 13px; font-weight: 800; cursor: pointer; text-align: center; transition: .15s; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 .pfp-source-btn:hover { background: rgba(255,255,255,0.1); }
 .pfp-gallery-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
 .pfp-gallery-item { aspect-ratio:1; border-radius: 12px; overflow:hidden; border: 2px solid transparent; cursor: pointer; transition: .15s; }
 .pfp-gallery-item:hover { border-color: var(--accent); transform: scale(1.05); }
 .pfp-gallery-item.selected { border-color: var(--accent); }
 .pfp-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.pfp-gallery-confirm { width: 100%; margin-top: 14px; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #000; font-size: 14px; font-weight: 900; cursor: pointer; display: none; font-family: 'Inter', sans-serif; }
+.pfp-gallery-confirm { width: 100%; margin-top: 14px; padding: 13px; border-radius: 12px; background: var(--accent); border: none; color: #000; font-size: 14px; font-weight: 900; cursor: pointer; display: none; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 .pfp-gallery-confirm.visible { display: block; }
-.sheet-cancel-btn { width: 100%; margin-top: 10px; padding: 13px; border-radius: 14px; background: none; border: 1px solid var(--border); color: #555; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif; }
+.sheet-cancel-btn { width: 100%; margin-top: 10px; padding: 13px; border-radius: 14px; background: none; border: 1px solid var(--border); color: #555; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
 .sheet-cancel-btn:hover { color: #888; border-color: #444; }
 
 /* ══════════════════════════════════════

@@ -1,4 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Regular.woff') format('woff'),
+       url('../fonts/AnimeAce2-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Bold.woff') format('woff'),
+       url('../fonts/AnimeAce2-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Italic.woff') format('woff'),
+       url('../fonts/AnimeAce2-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 :root{
   --orange:#ff7a00;
   --orange-light:#ff9a3c;
@@ -19,7 +45,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
 html,body{height:100%;overscroll-behavior:none;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;position:relative;overflow-x:hidden;}
+body{font-family:'Anime Ace 2.0 BB','Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;position:relative;overflow-x:hidden;}
 body::before{content:'';position:fixed;top:-100px;left:-80px;width:480px;height:480px;background:radial-gradient(circle,rgba(255,122,0,0.09) 0%,transparent 70%);pointer-events:none;z-index:0;}
 body::after{content:'';position:fixed;bottom:-80px;right:-60px;width:380px;height:380px;background:radial-gradient(circle,rgba(0,201,177,0.06) 0%,transparent 70%);pointer-events:none;z-index:0;}
 
@@ -36,7 +62,7 @@ body::after{content:'';position:fixed;bottom:-80px;right:-60px;width:380px;heigh
 /* ── Tabs ── */
 .sticky-header{position:sticky;top:0;z-index:100;background:rgba(15,15,17,0.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
 .tabs{display:flex;}
-.tab{flex:1;padding:14px 8px;text-align:center;font-size:11px;font-weight:900;letter-spacing:.8px;color:var(--text-dim);cursor:pointer;border:none;background:none;text-transform:uppercase;border-bottom:2.5px solid transparent;transition:.12s;font-family:'Inter',sans-serif;}
+.tab{flex:1;padding:14px 8px;text-align:center;font-size:11px;font-weight:900;letter-spacing:.8px;color:var(--text-dim);cursor:pointer;border:none;background:none;text-transform:uppercase;border-bottom:2.5px solid transparent;transition:.12s;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;}
 .tab:hover{color:var(--text-muted);}
 .tab.active{color:var(--orange);border-bottom-color:var(--orange);}
 .tab-count{display:inline-flex;align-items:center;justify-content:center;background:var(--card2);color:var(--text-dim);border-radius:10px;padding:1px 7px;font-size:9px;margin-left:5px;font-weight:900;min-width:18px;}
@@ -47,10 +73,10 @@ body::after{content:'';position:fixed;bottom:-80px;right:-60px;width:380px;heigh
 
 /* ── Search + sort bar ── */
 .toolbar{display:flex;gap:8px;align-items:center;margin-bottom:14px;}
-.search-box{flex:1;background:var(--card);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:12px;font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:.15s;}
+.search-box{flex:1;background:var(--card);border:1.5px solid var(--border);color:var(--text);padding:10px 14px;border-radius:12px;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;font-size:13px;outline:none;transition:.15s;}
 .search-box:focus{border-color:rgba(255,122,0,0.5);box-shadow:0 0 0 3px rgba(255,122,0,0.08);}
 .search-box::placeholder{color:var(--text-dim);}
-.sort-select{appearance:none;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);padding:10px 12px;border-radius:12px;font-family:'Inter',sans-serif;font-size:11px;font-weight:700;outline:none;cursor:pointer;}
+.sort-select{appearance:none;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);padding:10px 12px;border-radius:12px;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;font-size:11px;font-weight:700;outline:none;cursor:pointer;}
 
 /* ── Stats bar ── */
 .stats-bar{display:flex;gap:20px;padding:10px 2px 14px;border-bottom:1px solid var(--border);margin-bottom:14px;}
@@ -103,13 +129,13 @@ body::after{content:'';position:fixed;bottom:-80px;right:-60px;width:380px;heigh
 .popup-meta-chip.blue{color:#00d2ff;background:rgba(0,210,255,0.12);border:1px solid rgba(0,210,255,0.2);display:flex;align-items:center;gap:5px;}
 .popup-desc{font-size:13px;line-height:1.6;color:#aaa;margin-bottom:14px;}
 .popup-btns{display:flex;gap:8px;flex-wrap:wrap;}
-.read-btn{flex:1;background:white;color:#000;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:900;cursor:pointer;transition:.15s;letter-spacing:.3px;min-width:120px;font-family:'Inter',sans-serif;}
+.read-btn{flex:1;background:white;color:#000;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:900;cursor:pointer;transition:.15s;letter-spacing:.3px;min-width:120px;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;}
 .read-btn:hover{background:#e8e8e8;}
-.popup-edit-btn{background:#1e1e20;border:1.5px solid #00d2ff;color:#00d2ff;padding:13px 16px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:.15s;}
+.popup-edit-btn{background:#1e1e20;border:1.5px solid #00d2ff;color:#00d2ff;padding:13px 16px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;transition:.15s;}
 .popup-edit-btn:hover{background:rgba(0,210,255,0.08);}
-.popup-rename-btn{background:#1e1e20;border:1.5px solid #2a2a2c;color:#888;padding:13px 16px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:.15s;}
+.popup-rename-btn{background:#1e1e20;border:1.5px solid #2a2a2c;color:#888;padding:13px 16px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;transition:.15s;}
 .popup-rename-btn:hover{background:#2a2a2c;}
-.popup-delete-btn{background:#1e1e20;border:1.5px solid var(--danger);color:var(--danger);padding:13px 16px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;display:flex;align-items:center;gap:6px;transition:.15s;}
+.popup-delete-btn{background:#1e1e20;border:1.5px solid var(--danger);color:var(--danger);padding:13px 16px;border-radius:10px;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;display:flex;align-items:center;gap:6px;transition:.15s;}
 .popup-delete-btn:hover{background:rgba(255,59,48,0.1);}
 
 /* ── Empty state ── */
@@ -117,7 +143,7 @@ body::after{content:'';position:fixed;bottom:-80px;right:-60px;width:380px;heigh
 .empty-icon{font-size:56px;opacity:.25;}
 .empty-title{font-size:16px;font-weight:900;color:var(--text-muted);}
 .empty-sub{font-size:13px;color:var(--text-dim);line-height:1.6;max-width:260px;}
-.empty-cta{margin-top:4px;padding:13px 28px;background:var(--orange);color:#000;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Inter',sans-serif;letter-spacing:.3px;}
+.empty-cta{margin-top:4px;padding:13px 28px;background:var(--orange);color:#000;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;letter-spacing:.3px;}
 
 
 
@@ -149,27 +175,27 @@ body::after{content:'';position:fixed;bottom:-80px;right:-60px;width:380px;heigh
 .ratio-opt.sel .ratio-preview{border-color:rgba(255,122,0,0.3);}
 .ratio-name{font-size:10px;font-weight:900;color:var(--text-muted);letter-spacing:.3px;}
 .ratio-dims{font-size:8px;color:var(--text-dim);font-weight:700;}
-.sheet-cta{margin:0 20px 4px;padding:15px;background:var(--orange);color:#000;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;width:calc(100% - 40px);font-family:'Inter',sans-serif;letter-spacing:.3px;}
+.sheet-cta{margin:0 20px 4px;padding:15px;background:var(--orange);color:#000;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;width:calc(100% - 40px);font-family:'Anime Ace 2.0 BB','Inter',sans-serif;letter-spacing:.3px;}
 
 /* ── New comic: mode step (Comic vs Novels) ── */
 .mode-grid{display:flex;gap:12px;padding:14px 20px 4px;}
-.mode-btn{flex:1;background:var(--card);border:1.5px solid var(--border);color:var(--text);border-radius:16px;padding:24px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;transition:.2s;font-family:'Inter',sans-serif;}
+.mode-btn{flex:1;background:var(--card);border:1.5px solid var(--border);color:var(--text);border-radius:16px;padding:24px 14px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px;transition:.2s;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;}
 .mode-btn:hover,.mode-btn:active{background:var(--card2);}
 
 /* ── Rename input ── */
 .rename-wrap{padding:14px 20px 20px;}
-.rename-input{background:var(--card);border:1.5px solid var(--border);color:var(--text);padding:13px 14px;border-radius:12px;font-family:'Inter',sans-serif;font-size:15px;outline:none;width:100%;margin-bottom:12px;transition:.15s;}
+.rename-input{background:var(--card);border:1.5px solid var(--border);color:var(--text);padding:13px 14px;border-radius:12px;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;font-size:15px;outline:none;width:100%;margin-bottom:12px;transition:.15s;}
 .rename-input:focus{border-color:rgba(255,122,0,0.5);box-shadow:0 0 0 3px rgba(255,122,0,0.08);}
 .rename-row{display:flex;gap:10px;}
-.rename-cancel{flex:1;padding:13px;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);border-radius:12px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;}
-.rename-ok{flex:1;padding:13px;background:var(--orange);border:none;color:#000;border-radius:12px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;}
+.rename-cancel{flex:1;padding:13px;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);border-radius:12px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;}
+.rename-ok{flex:1;padding:13px;background:var(--orange);border:none;color:#000;border-radius:12px;font-weight:900;font-size:13px;cursor:pointer;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;}
 
 /* ── Delete confirm sheet ── */
 .del-wrap{padding:14px 20px 20px;}
 .del-title{font-size:15px;font-weight:900;color:var(--danger);margin-bottom:6px;}
 .del-sub{font-size:12px;color:var(--text-muted);line-height:1.6;margin-bottom:20px;}
-.del-confirm{width:100%;padding:15px;background:var(--danger);color:white;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:10px;}
-.del-cancel{width:100%;padding:14px;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);border-radius:14px;font-size:13px;font-weight:900;cursor:pointer;font-family:'Inter',sans-serif;}
+.del-confirm{width:100%;padding:15px;background:var(--danger);color:white;border:none;border-radius:14px;font-size:14px;font-weight:900;cursor:pointer;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;margin-bottom:10px;}
+.del-cancel{width:100%;padding:14px;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);border-radius:14px;font-size:13px;font-weight:900;cursor:pointer;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;}
 
 /* ── Toast ── */
 .toast-el{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:14px;font-weight:900;font-size:13px;z-index:9999;pointer-events:none;white-space:nowrap;transition:opacity .4s;}
@@ -186,10 +212,10 @@ body::after{content:'';position:fixed;bottom:-80px;right:-60px;width:380px;heigh
 .draft-select-bar.open{bottom:0;}
 .draft-select-bar .dsel-count{font-size:12px;font-weight:800;color:var(--text-muted);flex-shrink:0;}
 .draft-select-bar .dsel-spacer{flex:1;}
-.dsel-btn{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;}
+.dsel-btn{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:12px;font-weight:800;cursor:pointer;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;}
 .dsel-btn.danger{color:var(--danger);border-color:rgba(255,59,48,0.35);background:rgba(255,59,48,0.08);}
 
 /* ── Select toggle btn in topbar ── */
-.select-toggle-btn{height:36px;padding:0 14px;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:'Inter',sans-serif;transition:.15s;display:none;}
+.select-toggle-btn{height:36px;padding:0 14px;background:var(--card2);border:1px solid var(--border);color:var(--text-muted);border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;font-family:'Anime Ace 2.0 BB','Inter',sans-serif;transition:.15s;display:none;}
 .select-toggle-btn.visible{display:block;}
 .select-toggle-btn.active{background:var(--orange);color:#000;border-color:var(--orange);}

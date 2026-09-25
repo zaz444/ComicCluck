@@ -1,3 +1,29 @@
+/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Regular.woff') format('woff'),
+       url('../fonts/AnimeAce2-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Bold.woff') format('woff'),
+       url('../fonts/AnimeAce2-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Anime Ace 2.0 BB';
+  src: url('../fonts/AnimeAce2-Italic.woff') format('woff'),
+       url('../fonts/AnimeAce2-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -17,7 +43,7 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   background-color: var(--bg);
   min-height: 100dvh;
   display: flex;
@@ -189,7 +215,7 @@ body {
   color: var(--text);
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   cursor: pointer;
   transition: all 0.18s ease;
 }
@@ -229,7 +255,7 @@ body {
   color: var(--text);
   font-size: 14px;
   font-weight: 500;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s;
 }
@@ -279,7 +305,7 @@ body {
   color: #fff;
   font-size: 15px;
   font-weight: 800;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
   cursor: pointer;
   letter-spacing: 0.2px;
   transition: background 0.18s ease, border-color 0.18s ease;
