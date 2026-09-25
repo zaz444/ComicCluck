@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta property="og:title" content="Spritomic - Create & Read">
+  <meta property="og:description" content="Spritomic is a new app that lets you make comics using 2D sprites and arcade characters. No drawing skills needed, just customize the poses, angles, and frames to tell the story you want.">
+  <meta property="og:image" content="https://media.discordapp.net/attachments/1472088820584419450/1475026485256523816/IMG_1777.png?ex=699bfcf6&is=699aab76&hm=4d03c9164ead0826a54cb0d5225719bbab724d2cf9296a72589bcb41db1f815d&=&format=webp&quality=lossless">
+  <meta property="og:url" content="https://zaz444.github.io/spritomic/">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/regular/straight.css">
+  <script src="theme.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spritomic - Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#ff7a00">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <script src="dexie.min.js"></script>
+  <script src="idb.js"></script>
+  <script src="install-prompt.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.error('SW registration failed:', err));
+      });
+    }
+  </script>
+</head>
+<body>
+
+<div class="home-header">
+  <div class="header-brand" onclick="goToMyProfile()" title="View Profile">
+    <img id="nav-pfp" class="corner-avatar" title="View Profile">
+    <div class="header-handle">@<span id="header-handle-text">handle</span></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <!-- Inbox / mail button — shows squad invites & (for owner) reports -->
+    <div class="inbox-btn" id="inbox-btn" onclick="openInboxPanel()" title="Inbox">
+      <i class="fi fi-rs-mailbox-flag-up"></i>
+      <div class="inbox-badge" id="inbox-badge">0</div>
+    </div>
+    <div class="inbox-btn" onclick="location.href='settings.html'" title="Settings">
+      <i class="fi fi-rs-settings"></i>
+    </div>
+  </div>
+</div>
+
+<!-- Panel backdrop -->
+<div class="panel-overlay" id="panel-overlay" onclick="closeInboxPanel()"></div>
+
+<!-- Inbox side panel -->
+<div class="side-panel" id="inbox-panel">
+  <div class="side-panel-header">
+    <div class="side-panel-title"><i class="fi fi-rs-mailbox-flag-up"></i> Inbox</div>
+    <button class="side-panel-close" onclick="closeInboxPanel()">✕</button>
+  </div>
+  <div class="side-panel-body" id="inbox-panel-body">
+    <div class="empty-panel">Loading…</div>
+  </div>
+</div>
+
+<!-- Reports side panel (owner only) -->
+<div class="side-panel" id="reports-panel" style="right:-340px;">
+  <div class="side-panel-header">
+    <div class="side-panel-title"><i class="fi fi-rs-siren-on"></i> Reports <span class="reports-count-badge" id="reports-live-count" style="display:none;"></span></div>
+    <button class="side-panel-close" onclick="closeReportsPanel()">✕</button>
+  </div>
+  <div class="reports-toolbar" id="reports-toolbar" style="display:none;">
+    <div class="reports-filter-tabs">
+      <button class="reports-tab active" onclick="setReportsFilter('pending', this)">Pending</button>
+      <button class="reports-tab" onclick="setReportsFilter('dismissed', this)">Dismissed</button>
+    </div>
+    <button class="reports-refresh-btn" id="reports-refresh-btn" onclick="refreshReportsPanel()" title="Refresh">↻</button>
+  </div>
+  <div class="reports-panel-body-inner" id="reports-panel-body">
+    <div class="empty-panel">Loading…</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="brand-heading">Spritomic</div>
+
+  <button class="create-card" onclick="openCreateFlow()">
+    <div>
+      <div class="create-card-title">Create a Comic</div>
+      <div class="create-card-sub">Ink a Masterpiece</div>
+    </div>
+    <img src="https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/uibuttons/edit.webp" class="create-card-icon" alt="edit" style="width:40px;height:40px;object-fit:contain;">
+  </button>
+
+  <div class="card-grid">
+
+    <button class="nav-card" onclick="location.href='discover.html'">
+      <div class="card-icon"><i class="fi fi-rs-search"></i></div>
+      <div class="card-title">Discover</div>
+      <div class="card-sub">Find new comics</div>
+    </button>
+
+    <button class="nav-card" onclick="goToMyComics()">
+      <div class="card-icon"><i class="fi fi-rs-book-alt"></i></div>
+      <div class="card-title">My Comics</div>
+      <div class="card-sub">Your creations</div>
+    </button>
+
+    <button class="nav-card" onclick="goToMyProfile()">
+      <div class="card-icon"><i class="fi fi-rs-user"></i></div>
+      <div class="card-title">Profile</div>
+      <div class="card-sub">View your page</div>
+    </button>
+
+    <button class="nav-card" onclick="location.href='favorites.html'">
+      <div class="card-icon"><i class="fi fi-rs-star"></i></div>
+      <div class="card-title">Favorites</div>
+      <div class="card-sub">Saved comics</div>
+    </button>
+
+    <button id="teams-btn" class="nav-card span-2" onclick="location.href='squads.html'">
+      <div class="card-body">
+        <div class="card-title">Squads</div>
+        <div class="card-sub">Groups &amp; team chats</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </button>
+
+    <button id="sprite-editor-btn" class="nav-card span-2 accent-teal" onclick="location.href='sprite-editor.html'">
+      <div class="card-body">
+        <div class="card-icon"><i class="fi fi-rs-palette"></i></div>
+        <div class="card-title">Sprite Editor</div>
+        <div class="card-sub">Create &amp; customize sprites</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </button>
+
+    <button id="sprite-gallery-btn" class="nav-card span-2" onclick="location.href='spritegallery.html'">
+      <div class="card-body">
+        <div class="card-icon"><i class="fi fi-rs-picture"></i></div>
+        <div class="card-title">Sprite Gallery</div>
+        <div class="card-sub">Browse &amp; use community sprites</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </button>
+
+    <!-- Owner-only: reports shortcut card -->
+    <button id="reports-nav-btn" class="nav-card span-2" style="display:none;" onclick="openReportsPanel()">
+      <div class="card-body">
+        <div class="card-icon"><i class="fi fi-rs-siren-on"></i></div>
+        <div class="card-title">Reports</div>
+        <div class="card-sub" id="reports-nav-sub">View pending user reports</div>
+      </div>
+      <div class="card-arrow">›</div>
+    </button>
+
+  </div>
+
+  <button class="signout-btn" onclick="logout()">Sign Out</button>
+
+</div>
+
+<!-- Draft Modal -->
+<div id="draft-choice-modal">
+  <div style="text-align:center;">
+    <div style="font-size:40px; margin-bottom:12px;"><i class="fi fi-rs-pencil"></i></div>
+    <h2 style="margin:0; color:var(--orange); font-size:22px; font-weight:900;">You have a draft</h2>
+    <p style="margin:10px 0 4px; color:var(--text); font-size:16px; font-weight:700;" id="draft-title-preview">Untitled Draft</p>
+    <p style="margin:0; color:var(--text-muted); font-size:13px;" id="draft-frames-preview">0 frames</p>
+  </div>
+  <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:320px;">
+    <button onclick="resumeDraft()" style="padding:18px; background:linear-gradient(135deg,var(--orange),var(--orange-light)); color:white; border:none; border-radius:14px; font-size:16px; font-weight:900; cursor:pointer; font-family:'Inter',sans-serif; box-shadow:0 6px 20px rgba(0,0,0,0.35);">▶ Resume Draft</button>
+    <button onclick="startNewFromDraftChoice()" style="padding:18px; background:var(--card); color:var(--text-muted); border:1px solid var(--border); border-radius:14px; font-size:15px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif;">+ Start New Comic</button>
+    <button onclick="document.getElementById('draft-choice-modal').style.display='none'" style="padding:12px; background:none; color:var(--text-dim); border:none; font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif;">Cancel</button>
+  </div>
+</div>
+
+<!-- Ratio Modal -->
+<div id="ratio-modal">
+  <h2>Choose Canvas Format</h2>
+  <p>Pick the frame shape for your comic.</p>
+  <div class="ratio-grid">
+    <button class="ratio-btn" onclick="pickRatio(1,1)"><div class="ratio-preview" style="width:36px;height:36px;"></div>1:1</button>
+    <button class="ratio-btn" onclick="pickRatio(16,9)"><div class="ratio-preview" style="width:44px;height:25px;"></div>16:9</button>
+    <button class="ratio-btn" onclick="pickRatio(9,16)"><div class="ratio-preview" style="width:25px;height:44px;"></div>9:16</button>
+    <button class="ratio-btn" onclick="pickRatio(5,4)"><div class="ratio-preview" style="width:38px;height:30px;"></div>5:4</button>
+    <button class="ratio-btn" onclick="pickRatio(4,5)"><div class="ratio-preview" style="width:30px;height:38px;"></div>4:5</button>
+    <button class="ratio-btn" onclick="pickRatio(7,5)"><div class="ratio-preview" style="width:40px;height:29px;"></div>7:5</button>
+    <button class="ratio-btn" onclick="pickRatio(5,7)"><div class="ratio-preview" style="width:29px;height:40px;"></div>5:7</button>
+    <button class="ratio-btn" onclick="pickRatio(4,3)"><div class="ratio-preview" style="width:38px;height:29px;"></div>4:3</button>
+    <button class="ratio-btn" onclick="pickRatio(3,4)"><div class="ratio-preview" style="width:29px;height:38px;"></div>3:4</button>
+    <button class="ratio-btn" onclick="pickRatio(5,3)"><div class="ratio-preview" style="width:40px;height:24px;"></div>5:3</button>
+    <button class="ratio-btn" onclick="pickRatio(3,5)"><div class="ratio-preview" style="width:24px;height:40px;"></div>3:5</button>
+    <button class="ratio-btn" onclick="pickRatio(3,2)"><div class="ratio-preview" style="width:40px;height:27px;"></div>3:2</button>
+    <button class="ratio-btn" onclick="pickRatio(2,3)"><div class="ratio-preview" style="width:27px;height:40px;"></div>2:3</button>
+  </div>
+  <button class="ratio-cancel" onclick="document.getElementById('ratio-modal').style.display='none'">Cancel</button>
+</div>
+
+<!-- Mode Modal -->
+<div id="mode-modal">
+  <div style="text-align:center;">
+    <h2 style="margin:0; color:var(--orange); font-size:22px; font-weight:900;">What are you making?</h2>
+    <p style="margin:8px 0 0; color:var(--text-muted); font-size:13px;">Choose your creation type</p>
+  </div>
+  <div style="display:flex; gap:16px; width:100%; max-width:380px;">
+    <button class="mode-btn" onclick="goToMode('comic')" onmouseover="this.style.borderColor='var(--orange)'" onmouseout="this.style.borderColor='var(--border)'">
+      <img src="https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/uibuttons/edit.webp" alt="edit" style="width:46px;height:46px;object-fit:contain;">
+      <span style="font-weight:900; font-size:18px; color:var(--orange);">COMIC</span>
+      <span style="font-size:12px; color:var(--text-muted); line-height:1.5; text-align:center;">New Comic</span>
+    </button>
+    <button class="mode-btn" onclick="goToMode('story')" onmouseover="this.style.borderColor='var(--teal)'" onmouseout="this.style.borderColor='var(--border)'">
+      <svg viewBox="0 0 24 24" width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="color:var(--teal);"><path d="M7 3.5h9a1 1 0 0 1 1 1V17a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V3.5Z"/><path d="M7 3.5H5.5a1 1 0 0 0-1 1V19a1 1 0 0 0 1 1H15"/><path d="M10 8h4"/><path d="M10 11.5h4"/></svg>
+      <span style="font-weight:900; font-size:18px; color:var(--teal);">NOVELS</span>
+      <span style="font-size:12px; color:var(--text-muted); line-height:1.5; text-align:center;">Write your story</span>
+    </button>
+  </div>
+  <button onclick="document.getElementById('mode-modal').style.display='none'; document.getElementById('ratio-modal').style.display='flex';" class="ratio-cancel">← Back to Ratio</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="javascript/index.js"></script>
+
+</body>
+</html>
