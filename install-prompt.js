@@ -69,9 +69,7 @@
       #cc-install-banner.cc-show { transform: translateY(0); }
       #cc-install-banner .cc-install-icon {
         width: 34px; height: 34px; border-radius: 9px;
-        background: #ff7a00; flex-shrink: 0;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 900; font-size: 13px; color: #0f0f11;
+        flex-shrink: 0; object-fit: cover; display: block;
       }
       #cc-install-banner .cc-install-text { flex: 1; min-width: 0; }
       #cc-install-banner .cc-install-title { font-size: 13px; font-weight: 800; }
@@ -99,7 +97,7 @@
     const el = document.createElement('div');
     el.id = 'cc-install-banner';
     el.innerHTML =
-      '<div class="cc-install-icon">CC</div>' +
+      '<img class="cc-install-icon" src="apple-touch-icon.png" alt="">' +
       '<div class="cc-install-text">' +
         `<div class="cc-install-title">${title}</div>` +
         `<div class="cc-install-sub">${sub}</div>` +
