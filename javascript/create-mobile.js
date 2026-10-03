@@ -2416,7 +2416,7 @@ function renderMobFrames() {
     if (typeof renderFrameRatioPicker === 'function') renderFrameRatioPicker();
 }
 
-// frame audio: 3-15s clip, optionally spanning frames. span frames share the same audio pair (dedup key) so it plays uninterrupted across swipes
+// frame audio: 3-45s clip, optionally spanning frames. span frames share the same audio pair (dedup key) so it plays uninterrupted across swipes
 let mobAudioMainTab   = 'library';
 let mobAudioLibLoaded = false;
 let mobAudioLib       = [];
@@ -2470,7 +2470,7 @@ function renderMobAudioSheet() {
         cur.style.display = 'flex';
         empty.style.display = 'none';
         document.getElementById('mob-audio-current-name').innerText = f.audio_name || 'Track';
-        const start = f.audio_start || 0, end = f.audio_end != null ? f.audio_end : 15;
+        const start = f.audio_start || 0, end = f.audio_end != null ? f.audio_end : 45;
         document.getElementById('mob-audio-current-range').innerText =
             mobFmtTime(start) + '–' + mobFmtTime(end) + ' (' + (end - start).toFixed(1) + 's)';
         document.getElementById('mob-audio-current-play').innerText = '▶';
@@ -2545,7 +2545,7 @@ function applyAudioSpan(url, name, start, end, span) {
         fr.audio_url = url;
         fr.audio_name = name || 'Track';
         fr.audio_start = Math.max(0, start || 0);
-        fr.audio_end = Math.max(fr.audio_start + 3, end || (fr.audio_start + 15));
+        fr.audio_end = Math.max(fr.audio_start + 3, end || (fr.audio_start + 45));
         fr.audio_span_start = startIdx;
         fr.audio_span_len = clampedSpan;
     }
@@ -2565,7 +2565,7 @@ function toggleCurrentFrameAudioPreview() {
         p.pause(); btn.innerText = '▶'; return;
     }
     stopAllMobAudioPreviews();
-    const start = f.audio_start || 0, end = f.audio_end != null ? f.audio_end : (start + 15);
+    const start = f.audio_start || 0, end = f.audio_end != null ? f.audio_end : (start + 45);
     p.src = f.audio_url;
     p.currentTime = start;
     p.ontimeupdate = () => { if (p.currentTime >= end) { p.pause(); btn.innerText = '▶'; } };
@@ -2716,8 +2716,8 @@ function renderMobAudioList() {
         row.appendChild(info);
         row.appendChild(useBtn);
         row.onclick = () => {
-            const dur = clip.duration || 15;
-            applyAudioToFrame(clip.audio_url, clip.name, 0, Math.min(dur, 15));
+            const dur = clip.duration || 45;
+            applyAudioToFrame(clip.audio_url, clip.name, 0, Math.min(dur, 45));
         };
         list.appendChild(row);
     });
@@ -2731,7 +2731,7 @@ function toggleLibraryClipPreview(clip, btnEl) {
     stopAllMobAudioPreviews();
     p.src = clip.audio_url;
     p.currentTime = 0;
-    const maxLen = Math.min(clip.duration || 15, 15);
+    const maxLen = Math.min(clip.duration || 45, 45);
     p.ontimeupdate = () => { if (p.currentTime >= maxLen) { p.pause(); btnEl.innerText = '▶'; _mobAudioRowPlaying = null; } };
     p.onended = () => { btnEl.innerText = '▶'; _mobAudioRowPlaying = null; };
     p.play().catch(() => {});
@@ -2769,8 +2769,8 @@ document.getElementById('audio-file-input').addEventListener('change', (e) => {
         startSlider.max = Math.max(0, _mobAudioUploadDuration - 3);
         startSlider.value = 0;
         lenSlider.min = 3;
-        lenSlider.max = Math.min(15, _mobAudioUploadDuration);
-        lenSlider.value = Math.min(15, _mobAudioUploadDuration);
+        lenSlider.max = Math.min(45, _mobAudioUploadDuration);
+        lenSlider.value = Math.min(45, _mobAudioUploadDuration);
         onAudioTrimChange();
         document.getElementById('mob-audio-use-btn').disabled = false;
     };
@@ -2804,7 +2804,7 @@ async function useUploadedAudioClip() {
     const start = parseFloat(document.getElementById('mob-audio-trim-start').value);
     const len = parseFloat(document.getElementById('mob-audio-trim-len').value);
     const end = start + len;
-    if (len < 3 || len > 15) { alert('Clip length must be between 3 and 15 seconds.'); return; }
+    if (len < 3 || len > 45) { alert('Clip length must be between 3 and 45 seconds.'); return; }
 
     const useBtn = document.getElementById('mob-audio-use-btn');
     useBtn.disabled = true;
