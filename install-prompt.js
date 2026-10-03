@@ -1,4 +1,4 @@
-/* install-prompt.js — pwa install nudges for spritomic, loads right after idb.js
+/* install-prompt.js — pwa install nudges for comiccluck, loads right after idb.js
    - android/chrome: hijacks beforeinstallprompt, shows our own banner w/
      an install button that triggers the real native prompt
    - ios safari: no install api exists, so just show manual
@@ -99,7 +99,7 @@
     const el = document.createElement('div');
     el.id = 'cc-install-banner';
     el.innerHTML =
-      '<div class="cc-install-icon">SP</div>' +
+      '<div class="cc-install-icon">CC</div>' +
       '<div class="cc-install-text">' +
         `<div class="cc-install-title">${title}</div>` +
         `<div class="cc-install-sub">${sub}</div>` +

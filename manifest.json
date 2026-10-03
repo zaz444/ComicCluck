@@ -1,7 +1,7 @@
 {
   "id": "/comiccore/",
-  "name": "ComicCore",
-  "short_name": "ComicCore",
+  "name": "ComicCluck",
+  "short_name": "ComicCluck",
   "description": "Create and read comics, online or offline",
   "start_url": "./index.html",
   "scope": "./",
