@@ -567,7 +567,7 @@
     <div class="sheet-handle"></div>
     <div class="sheet-title">🔊 Frame Audio <span id="mob-audio-frame-label" style="font-size:12px;color:#888;font-weight:700;">Frame 1</span><button class="sheet-close" onclick="closeSheet('audio')">✕</button></div>
     <div class="sheet-body">
-        <div style="font-size:10px;color:#555;font-weight:700;text-align:center;padding-bottom:8px;">3–15 seconds of audio plays on this frame</div>
+        <div style="font-size:10px;color:#555;font-weight:700;text-align:center;padding-bottom:8px;">3–45 seconds of audio plays on this frame</div>
 
         <!-- current clip -->
         <div id="mob-audio-current" class="mob-audio-current" style="display:none;">
@@ -611,7 +611,7 @@
             <div class="mob-audio-upload-box" id="mob-audio-upload-box" onclick="document.getElementById('audio-file-input').click()">
                 <span class="au-ico">📁</span>
                 <div style="font-size:12px;font-weight:800;color:#aaa;">Tap to choose an audio file</div>
-                <div style="font-size:10px;color:#555;">mp3, m4a, wav — trim to 3–15s</div>
+                <div style="font-size:10px;color:#555;">mp3, m4a, wav — trim to 3–45s</div>
             </div>
 
             <div id="mob-audio-upload-preview" style="display:none;">
@@ -624,7 +624,7 @@
                 </div>
                 <div class="mob-audio-trim-row">
                     <label>Length</label>
-                    <input type="range" id="mob-audio-trim-len" min="3" max="15" step="0.1" value="3" oninput="onAudioTrimChange()">
+                    <input type="range" id="mob-audio-trim-len" min="3" max="45" step="0.1" value="3" oninput="onAudioTrimChange()">
                 </div>
                 <div style="text-align:center;font-size:11px;color:var(--teal);font-weight:800;" id="mob-audio-trim-label">0:00 – 0:00 (3.0s)</div>
 
