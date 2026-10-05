@@ -6533,6 +6533,22 @@ function drawPanelShapeOnCanvas(ctx, layer, scaleX, scaleY) {
     ctx.restore();
 }
 
+// embeds ComicCluck into the export SVG, since page fonts don't load inside SVG images
+let _ccFontB64 = null;
+async function ccFontStyleTag(ff) {
+    if (!/ComicCluck/.test(ff || '')) return '';
+    try { await document.fonts.load("20px 'ComicCluck'"); } catch (e) {}
+    try {
+        if (!_ccFontB64) {
+            const u8 = new Uint8Array(await (await fetch('css/fonts/ComicCluck-Regular.woff2')).arrayBuffer());
+            let bin = '';
+            for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+            _ccFontB64 = btoa(bin);
+        }
+        return `<style>@font-face{font-family:'ComicCluck';src:url(data:font/woff2;base64,${_ccFontB64}) format('woff2');font-weight:100 900;}</style>`;
+    } catch (e) { return ''; }
+}
+
 async function renderFrameToCanvas(frame, cw, ch) {
     const tmp = document.createElement('canvas');
     tmp.width = cw; tmp.height = ch;
@@ -6821,6 +6837,7 @@ async function renderFrameToCanvas(frame, cw, ch) {
                 }
                 ctx.restore();
             };
+            const ccStyle = await ccFontStyleTag(ff);
             await new Promise(res => {
                 let settled = false, url = null;
                 const finish = () => {
@@ -6833,6 +6850,7 @@ async function renderFrameToCanvas(frame, cw, ch) {
                 const timer = setTimeout(() => { if (!settled) { drawFallback(); finish(); } }, 1800);
                 try {
                     const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${bw + 60}" height="${ch}">
+                        ${ccStyle}
                         <foreignObject width="${bw + 60}" height="${ch}">
                             <div xmlns="http://www.w3.org/1999/xhtml" style="margin:0;padding:0;overflow:visible;">${innerHtml}</div>
                         </foreignObject>
