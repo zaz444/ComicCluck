@@ -1,0 +1,45 @@
+ComicCluck Font License
+Copyright (c) 2026 jeffyplays (ComicCluck). All rights reserved.
+
+This license covers the ComicCluck typeface: the font files
+(ComicCluck-Regular.ttf, .woff, .woff2), the glyph artwork, and any
+conversion of them to another format (the "Font").
+
+1. WHAT YOU MAY DO
+   a. View and use the Font as it is delivered by the ComicCluck website
+      and app, including typing text in it inside the ComicCluck editor.
+   b. Use, share, print, post, and sell comics and images you make with
+      ComicCluck that contain text set in the Font. Output you create is
+      yours. This license does not restrict it, commercial use included.
+
+2. WHAT YOU MAY NOT DO
+   Without written permission from the copyright holder, you may not:
+   a. Copy, download, extract, or save the Font files for use outside
+      ComicCluck.
+   b. Redistribute, share, upload, sublicense, rent, lend, or sell the Font,
+      alone or bundled with other software, fonts, or assets.
+   c. Install or embed the Font in any other website, app, game, document,
+      or product.
+   d. Modify the Font, convert it to other formats, or build a derivative
+      typeface from it, including by tracing, redrawing, or auto-generating
+      outlines from its glyphs.
+   e. Remove or alter this license or the copyright and license information
+      stored inside the font files.
+   f. Claim the Font or its design as your own.
+
+3. OWNERSHIP
+   The Font is licensed to you, not sold. All rights not expressly granted
+   here are reserved by the copyright holder.
+
+4. TERMINATION
+   Your rights under this license end automatically if you break any of its
+   terms. On termination you must delete every copy of the Font in your
+   possession.
+
+5. NO WARRANTY
+   The Font is provided "as is", without warranty of any kind. The copyright
+   holder is not liable for any damages arising from its use.
+
+6. PERMISSION REQUESTS
+   To ask for permission to use the Font in another project, contact the
+   ComicCluck community server: https://discord.gg/KrsV498DEx
