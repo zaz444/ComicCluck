@@ -79,8 +79,8 @@ body {
 }
 .create-card:hover { filter: brightness(1.06); }
 .create-card-tag { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: rgba(0,0,0,0.6); text-transform: uppercase; margin-bottom: 4px; }
-.create-card-title { font-size: 20px; font-weight: 900; color: #1a1a1a; letter-spacing: -0.3px; }
-.create-card-sub { font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.65); margin-top: 2px; }
+.create-card-title { font-size: 30px; font-weight: 900; color: #1a1a1a; letter-spacing: -0.3px; }
+.create-card-sub { font-size: 18px; font-weight: 500; color: rgba(0,0,0,0.65); margin-top: 2px; }
 .create-card-icon { font-size: 40px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
 
 /* Card grid */
@@ -108,10 +108,10 @@ body {
 .nav-card.has-notification .card-sub { color: var(--text-muted); }
 .nav-card.has-notification .card-arrow { color: #ffd700; }
 
-.card-icon { font-size: 22px; margin-bottom: 2px; color: #1a1a1a; }
-.card-title { font-size: 14px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.2px; }
+.card-icon { font-size: 28px; margin-bottom: 2px; color: #1a1a1a; }
+.card-title { font-size: 21px; font-weight: 800; color: #1a1a1a; letter-spacing: -0.2px; }
 .card-sub { display: none; }
-.card-arrow { font-size: 20px; color: #1a1a1a; transition: color 0.15s, transform 0.15s; }
+.card-arrow { font-size: 30px; color: #1a1a1a; transition: color 0.15s, transform 0.15s; }
 .nav-card:hover .card-arrow { color: #000; transform: translateX(3px); }
 
 
@@ -119,7 +119,7 @@ body {
   width: 100%; margin-top: 14px;
   background: transparent; border: 1px solid var(--border); color: var(--text-dim);
   padding: 13px; border-radius: 12px; cursor: pointer;
-  font-size: 13px; font-weight: 700; font-family: 'ComicCluck', 'Inter', sans-serif;
+  font-size: 20px; font-weight: 700; font-family: 'ComicCluck', 'Inter', sans-serif;
   transition: all 0.18s ease;
 }
 .signout-btn:hover { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.3); color: #f87171; }
