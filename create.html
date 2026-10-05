@@ -14,6 +14,11 @@
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+    @font-face {
+        font-family: 'ComicCluck';
+        src: url('css/fonts/ComicCluck-Regular.woff2') format('woff2'), url('css/fonts/ComicCluck-Regular.woff') format('woff'), url('css/fonts/ComicCluck-Regular.ttf') format('truetype');
+        font-weight: 100 900; font-style: normal; font-display: swap;
+    }
     
     :root { 
         --bg: #0f0f11; --card: #1c1c1e; --text: #f5f5f7; 
@@ -1536,6 +1541,7 @@
             <span>FONT</span>
             <select id="font-family-select" class="text-input-field" onchange="updateTextProp('fontFamily', this.value)" style="flex:1;">
                 <option value="'Inter', sans-serif">Standard</option>
+                <option value="'ComicCluck', cursive">ComicCluck</option>
                 <option value="'Comic Neue', cursive">Comic Neue</option>
                 <option value="'Bangers', cursive">Action Bangers</option>
                 <option value="'Luckiest Guy', cursive">Luckiest Guy</option>
@@ -4886,6 +4892,22 @@
     }
 
     // FIX 1: frameToCanvas now respects canvasRatio so exported frames are not distorted
+// embeds ComicCluck into the export SVG, since page fonts don't load inside SVG images
+let _ccFontB64 = null;
+async function ccFontStyleTag(ff) {
+    if (!/ComicCluck/.test(ff || '')) return '';
+    try { await document.fonts.load("20px 'ComicCluck'"); } catch (e) {}
+    try {
+        if (!_ccFontB64) {
+            const u8 = new Uint8Array(await (await fetch('css/fonts/ComicCluck-Regular.woff2')).arrayBuffer());
+            let bin = '';
+            for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+            _ccFontB64 = btoa(bin);
+        }
+        return `<style>@font-face{font-family:'ComicCluck';src:url(data:font/woff2;base64,${_ccFontB64}) format('woff2');font-weight:100 900;}</style>`;
+    } catch (e) { return ''; }
+}
+
     async function frameToCanvas(frameIdx, size) {
         const f = frames[frameIdx];
         const offscreen = document.createElement('canvas');
@@ -5118,9 +5140,11 @@
                 }
 
                 // Render HTML into an image via SVG foreignObject, then draw onto canvas
+                const ccStyle = await ccFontStyleTag(ff);
                 await new Promise(res => {
                     try {
                         const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${bw + 60}" height="${offH}">
+                            ${ccStyle}
                             <foreignObject width="${bw + 60}" height="${offH}">
                                 <div xmlns="http://www.w3.org/1999/xhtml" style="margin:0;padding:0;overflow:visible;">${innerHtml}</div>
                             </foreignObject>
