@@ -1,4 +1,4 @@
-/* ComicCluck hand-drawn font. Accents and anything not drawn fall back to Inter. */
+/* ComicCluck hand-drawn font, see fonts/LICENSE-ComicCluck.txt. Accents and anything not drawn fall back to Inter. */
 @font-face {
   font-family: 'ComicCluck';
   src: url('fonts/ComicCluck-Regular.woff2') format('woff2'),
@@ -64,7 +64,7 @@ body {
   max-width: 440px; margin: 0 auto; padding: 24px 16px 0;
 }
 
-.brand-heading { font-size: 34px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 22px; }
+.brand-heading { font-size: 51px; font-weight: 900; color: #fff; letter-spacing: -0.5px; margin-bottom: 22px; text-align: center; }
 
 /* Hero create card */
 .create-card {
