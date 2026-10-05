@@ -1,32 +1,17 @@
-/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+/* ComicCluck hand-drawn font. Accents and anything not drawn fall back to Inter. */
 @font-face {
-  font-family: 'Anime Ace 2.0 BB';
-  src: url('fonts/AnimeAce2-Regular.woff') format('woff'),
-       url('fonts/AnimeAce2-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: 'ComicCluck';
+  src: url('fonts/ComicCluck-Regular.woff2') format('woff2'),
+       url('fonts/ComicCluck-Regular.woff') format('woff'),
+       url('fonts/ComicCluck-Regular.ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Anime Ace 2.0 BB';
-  src: url('fonts/AnimeAce2-Bold.woff') format('woff'),
-       url('fonts/AnimeAce2-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Anime Ace 2.0 BB';
-  src: url('fonts/AnimeAce2-Italic.woff') format('woff'),
-       url('fonts/AnimeAce2-Italic.ttf') format('truetype');
-  font-weight: 400;
-  font-style: italic;
   font-display: swap;
 }
 
 :root { --accent: #ff7a00; --accent-rgb: 255,122,0; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { margin: 0; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; background: #0f0f11; color: #f5f5f7; min-height: 100dvh; padding-bottom: 20px; }
+body { margin: 0; font-family: 'ComicCluck', 'Inter', sans-serif; background: #0f0f11; color: #f5f5f7; min-height: 100dvh; padding-bottom: 20px; }
 
 /* ── Header ── */
 .header {
@@ -520,7 +505,7 @@ transition: .15s; min-width: 50px; text-align: center;
 .popup-icon-btn:hover { background: #2a2a2c; }
 .popup-icon-btn.starred { background: rgba(255,215,0,.12); border-color: #ffd700; color: #ffd700; }
 .popup-comment-badge { display: flex; align-items: center; justify-content: center; gap: 6px; }
-.popup-comment-count { font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; font-weight: 800; font-size: 14px; color: #f5f5f7; }
+.popup-comment-count { font-family: 'ComicCluck', 'Inter', sans-serif; font-weight: 800; font-size: 14px; color: #f5f5f7; }
 .popup-fav-btn { display: flex; align-items: center; justify-content: center; }
 .popup-fav-label {
   display: inline-block; font-family: 'Courier New', 'Consolas', monospace;
@@ -586,8 +571,8 @@ display: flex; align-items: center; gap: 6px;
 .episode-chip:hover { background: #3a3a3e; }
 .episode-chip span { color: #888; font-size: 14px; }
 .episode-actions { display: flex; gap: 12px; margin-top: 16px; }
-.episode-btn-cancel { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #3a3a3c; background: transparent; color: #888; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
-.episode-btn-save { flex: 1; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif; }
+.episode-btn-cancel { flex: 1; padding: 12px; border-radius: 12px; border: 1px solid #3a3a3c; background: transparent; color: #888; font-size: 13px; font-weight: 700; cursor: pointer; font-family: 'ComicCluck', 'Inter', sans-serif; }
+.episode-btn-save { flex: 1; padding: 12px; border-radius: 12px; border: none; background: var(--accent); color: #000; font-size: 13px; font-weight: 800; cursor: pointer; font-family: 'ComicCluck', 'Inter', sans-serif; }
 
 /* ── Comments overlay ── */
 .comment-overlay {

@@ -1,26 +1,11 @@
-/* Anime Ace 2.0 BB — comic lettering font (Blambot / Nate Piekos), see /fonts/LICENSE-AnimeAce2BB.txt */
+/* ComicCluck hand-drawn font. Accents and anything not drawn fall back to Inter. */
 @font-face {
-  font-family: 'Anime Ace 2.0 BB';
-  src: url('fonts/AnimeAce2-Regular.woff') format('woff'),
-       url('fonts/AnimeAce2-Regular.ttf') format('truetype');
-  font-weight: 400;
+  font-family: 'ComicCluck';
+  src: url('fonts/ComicCluck-Regular.woff2') format('woff2'),
+       url('fonts/ComicCluck-Regular.woff') format('woff'),
+       url('fonts/ComicCluck-Regular.ttf') format('truetype');
+  font-weight: 100 900;
   font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Anime Ace 2.0 BB';
-  src: url('fonts/AnimeAce2-Bold.woff') format('woff'),
-       url('fonts/AnimeAce2-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Anime Ace 2.0 BB';
-  src: url('fonts/AnimeAce2-Italic.woff') format('woff'),
-       url('fonts/AnimeAce2-Italic.ttf') format('truetype');
-  font-weight: 400;
-  font-style: italic;
   font-display: swap;
 }
 
@@ -43,7 +28,7 @@
 }
 
 body {
-  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
+  font-family: 'ComicCluck', 'Inter', sans-serif;
   background-color: var(--bg);
   min-height: 100dvh;
   display: flex;
@@ -215,7 +200,7 @@ body {
   color: var(--text);
   font-size: 14px;
   font-weight: 700;
-  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
+  font-family: 'ComicCluck', 'Inter', sans-serif;
   cursor: pointer;
   transition: all 0.18s ease;
 }
@@ -255,7 +240,7 @@ body {
   color: var(--text);
   font-size: 14px;
   font-weight: 500;
-  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
+  font-family: 'ComicCluck', 'Inter', sans-serif;
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s;
 }
@@ -305,7 +290,7 @@ body {
   color: #fff;
   font-size: 15px;
   font-weight: 800;
-  font-family: 'Anime Ace 2.0 BB', 'Inter', sans-serif;
+  font-family: 'ComicCluck', 'Inter', sans-serif;
   cursor: pointer;
   letter-spacing: 0.2px;
   transition: background 0.18s ease, border-color 0.18s ease;
