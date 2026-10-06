@@ -1,0 +1,60 @@
+/* privacy-policy.css
+   Styles for privacy-policy.html. Uses the site theme variables from
+   theme.css when they exist, with dark fallbacks so the page still
+   looks right if theme.css fails to load. */
+
+:root {
+  --pp-bg: var(--bg, #121212);
+  --pp-text: var(--text, #f2f2f4);
+  --pp-card: var(--card, #1c1c1f);
+  --pp-border: var(--border, #2c2c31);
+  --pp-accent: var(--accent, #ff7a00);
+  --pp-secondary: var(--secondary, #a4a4ad);
+  --pp-teal: var(--teal, #00d2ff);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--pp-bg); color: var(--pp-text); min-height: 100dvh; padding-bottom: 60px; }
+.top-bar { position: sticky; top: 0; z-index: 100; background: rgba(18,18,18,0.92); backdrop-filter: blur(18px); border-bottom: 1px solid var(--pp-border); padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
+.back-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--pp-border); background: var(--pp-card); color: var(--pp-text); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; text-decoration: none; }
+.back-btn:hover { border-color: var(--pp-accent); }
+.top-bar-title { font-size: 17px; font-weight: 800; }
+.hero { padding: 40px 20px 28px; border-bottom: 1px solid var(--pp-border); background: linear-gradient(180deg, rgba(0,210,255,0.06) 0%, transparent 100%); }
+.hero-badge { display: inline-flex; align-items: center; background: rgba(0,210,255,0.1); border: 1px solid rgba(0,210,255,0.3); color: var(--pp-teal); font-size: 12px; font-weight: 700; letter-spacing: 0.8px; padding: 5px 12px; border-radius: 20px; margin-bottom: 14px; }
+.hero h1 { font-size: 28px; font-weight: 900; margin-bottom: 10px; }
+.hero p { color: var(--pp-secondary); font-size: 14px; line-height: 1.6; max-width: 560px; }
+.hero-meta { margin-top: 16px; display: flex; gap: 20px; flex-wrap: wrap; }
+.hero-meta span { font-size: 13px; color: var(--pp-secondary); }
+.hero-meta strong { color: var(--pp-text); }
+.content { max-width: 720px; margin: 0 auto; padding: 32px 20px; }
+.section { margin-bottom: 40px; scroll-margin-top: 80px; }
+.section-num { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--pp-teal); margin-bottom: 6px; }
+.section h2 { font-size: 20px; font-weight: 800; color: var(--pp-text); margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--pp-border); }
+.section h3 { font-size: 15px; font-weight: 700; color: var(--pp-text); margin: 18px 0 8px; }
+.section p { font-size: 14px; color: var(--pp-secondary); line-height: 1.75; margin-bottom: 12px; }
+.section p strong { color: var(--pp-text); }
+.section a { color: var(--pp-accent); }
+.section ul, .section ol { padding-left: 20px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.section li { font-size: 14px; color: var(--pp-secondary); line-height: 1.65; }
+.section li strong { color: var(--pp-text); }
+.callout { background: rgba(0,210,255,0.07); border: 1px solid rgba(0,210,255,0.25); border-radius: 10px; padding: 14px 18px; margin: 16px 0; }
+.callout p { margin: 0; color: var(--pp-text) !important; }
+.callout-warn { background: rgba(255,122,0,0.07); border: 1px solid rgba(255,122,0,0.25); border-radius: 10px; padding: 14px 18px; margin: 16px 0; }
+.callout-warn p { margin: 0; color: var(--pp-text) !important; }
+.table-wrap { overflow-x: auto; margin: 14px 0; border: 1px solid var(--pp-border); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; min-width: 520px; }
+th, td { text-align: left; vertical-align: top; padding: 10px 14px; border-bottom: 1px solid var(--pp-border); font-size: 13px; line-height: 1.55; color: var(--pp-secondary); }
+th { color: var(--pp-text); font-weight: 700; background: var(--pp-card); }
+tr:last-child td { border-bottom: none; }
+td:first-child { color: var(--pp-text); font-weight: 600; }
+.rights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+@media (max-width: 500px) { .rights-grid { grid-template-columns: 1fr; } }
+.rights-card { background: var(--pp-card); border: 1px solid var(--pp-border); border-radius: 10px; padding: 14px 16px; }
+.rights-card h4 { font-size: 14px; font-weight: 700; color: var(--pp-text); margin-bottom: 4px; }
+.rights-card p { font-size: 13px; color: var(--pp-secondary); line-height: 1.5; margin: 0; }
+.footer-legal { text-align: center; padding: 24px 20px; border-top: 1px solid var(--pp-border); margin-top: 20px; }
+.footer-legal p { font-size: 13px; color: var(--pp-secondary); margin-bottom: 12px; }
+.footer-links { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+.footer-links a { font-size: 13px; color: var(--pp-accent); text-decoration: none; }
+.footer-links a:hover { text-decoration: underline; }
