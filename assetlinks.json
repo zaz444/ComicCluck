@@ -2,7 +2,7 @@
       "relation": ["delegate_permission/common.handle_all_urls"],
       "target": {
         "namespace": "android_app",
-        "package_name": "io.github.zaz444.twa",
-        "sha256_cert_fingerprints": ["93:B6:F5:7D:67:A3:6B:07:D2:11:F1:C7:7A:02:D0:EA:94:7A:6D:44:DE:E2:D2:3E:44:C9:A6:1C:B8:1D:3E:1F"]
+        "package_name": "com.domdog.ComicCluck",
+        "sha256_cert_fingerprints": ["FA:E5:FA:B7:C8:FC:F5:E9:68:6D:09:09:1B:54:99:59:3C:3D:82:A6:1C:FD:67:AF:80:3F:20:B2:DE:14:12:AD"]
       }
     }]
