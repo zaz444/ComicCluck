@@ -412,11 +412,11 @@
         position: fixed; bottom: -100%; left: 0; right: 0;
         background: var(--sheet-bg); border-radius: 20px 20px 0 0;
         z-index: 400; transition: bottom 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        max-height: 75vh; display: flex; flex-direction: column;
+        max-height: 75vh; max-height: calc(var(--app-vh, 100dvh) * 0.75); display: flex; flex-direction: column;
         border-top: 1px solid var(--border);
         touch-action: pan-y; /* allow scroll inside sheets, block pinch zoom */
     }
-    .bottom-sheet.open { bottom: 0; }
+    .bottom-sheet.open { bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
     .sheet-handle {
         width: 36px; height: 4px; background: #444; border-radius: 2px;
         margin: 10px auto 0; flex-shrink: 0;
@@ -534,7 +534,7 @@
         display: grid;
         grid-template-columns: repeat(2, 1fr);
         gap: 10px;
-        max-height: 50vh;
+        max-height: 50vh; max-height: calc(var(--app-vh, 100dvh) * 0.50);
         overflow-y: auto;
         margin-bottom: 6px;
         padding: 2px 2px 8px 2px;
@@ -710,10 +710,10 @@
         position: fixed; bottom: -100%; left: 0; right: 0;
         background: var(--sheet-bg); border-radius: 20px 20px 0 0;
         z-index: 500; transition: bottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        max-height: 60vh; overflow-y: auto;
+        max-height: 60vh; max-height: calc(var(--app-vh, 100dvh) * 0.60); overflow-y: auto;
         border-top: 1px solid var(--border); padding: 0 16px 24px;
     }
-    #transform-sheet.open { bottom: 62px; /* above bottom bar */ }
+    #transform-sheet.open { bottom: 62px; bottom: calc(62px + env(safe-area-inset-bottom, 0px)); /* above bottom bar */ }
     .ts-handle { width: 36px; height: 4px; background: #444; border-radius: 2px; margin: 10px auto 14px; }
     .ts-title { font-size: 14px; font-weight: 900; color: var(--accent); letter-spacing: -0.2px; margin-bottom: 14px; display: flex; justify-content: space-between; }
     .ts-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
@@ -800,7 +800,7 @@
     .modal-content {
         background: var(--card); width: 100%; max-width: 460px;
         border-radius: 20px; padding: 22px; box-sizing: border-box;
-        max-height: 88vh; overflow-y: auto; border: 1px solid var(--border);
+        max-height: 88vh; max-height: calc(var(--app-vh, 100dvh) * 0.88); overflow-y: auto; border: 1px solid var(--border);
         cursor: default;
     }
     .pub-input {
@@ -1098,3 +1098,10 @@
 .fpill-item:active { background:#2a2a2a; }
 .fpill-danger { color:var(--danger); }
 .fpill-divider { height:1px;background:#2c2c2e;margin:4px 6px; }
+
+
+/* narrow / zoomed Android screens: shrink the top bar so more of it fits */
+@media (max-width: 400px) {
+    #top-bar { gap: 4px; padding: 0 6px; }
+    .tb-btn  { padding: 6px 8px; font-size: 11px; }
+}
