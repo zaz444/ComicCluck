@@ -1171,9 +1171,7 @@
   <script src="install-prompt.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.error('SW registration failed:', err));
-      });
+      navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()));
     }
   </script>
 </head>
