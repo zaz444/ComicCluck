@@ -188,6 +188,10 @@ const onionCanvas = document.getElementById('onion-skin-canvas');
 const onionCtx = onionCanvas.getContext('2d');
 onionCtx.imageSmoothingEnabled = false; // keep onion-skin sprite previews crisp, not blurred
 
+// ref canvas side (px) that default_scale / text defaults were authored against (iPhone, 1:1). change this one number if sprites still look off
+const CC_REF_SIDE = 366;
+function ccRefScale(cw, ch) { return Math.min(cw, ch) / CC_REF_SIDE; }
+
 // canvas pixel size for ratio, shared by setRatio and save so reader scales layers back correctly
 function computeCanvasSize(w, h) {
     const vp = document.getElementById('viewport');
@@ -4320,6 +4324,20 @@ function handleActionSelect(img, pack, isEditing) {
             if (isChar) {
                 if (!layer.charHeight) layer.charHeight = oldH; // backfill for legacy layers
 
+                if (layer._rawBasis || (corsBlockedNew && layer.charScale)) {
+                    // untrimmed basis: size from the pose's own pixels * the layer's scale so every pose stays consistent
+                    layer._cropBlocked = true;
+                    const rawW = Math.round(probeNew.naturalWidth  * layer.charScale);
+                    const rawH = Math.round(probeNew.naturalHeight * layer.charScale);
+                    layer.charHeight = rawH;
+                    layer.src = probeNew.src;
+                    layer.w = rawW; layer.h = rawH;
+                    layer.x = Math.round(oldCenterX - rawW / 2);
+                    layer.y = Math.round(oldBottom - rawH);
+                    closeActionModal(); render();
+                    return;
+                }
+
                 if (corsBlockedNew) {
                     // can't read pose pixels for CORS reasons so no trimming, but naturalWidth/Height still work regardless. reusing the old box's w/h only ever matched the old pose's shape, new poses rarely match it, so we derive newH from this pose's own ratio instead, same as the non-char branch already does. charHeight/charScale stay untouched since that data's still padding-corrupted
                     layer._cropBlocked = true;
@@ -4414,7 +4432,9 @@ function addSpriteToCanvas(src, pack) {
     const isCharacter = !!(pack && pack.id); // library/gallery sprites have an id — effects don't
 
     // default char height: 60% of canvas, default_scale = character height on db
-    const targetH = (pack && pack.default_scale) ? pack.default_scale : Math.round(ch * 0.6);
+    // default_scale is stored in absolute px, so scale it to this device's canvas, then never let a sprite exceed the canvas
+    let targetH = (pack && pack.default_scale) ? Math.round(pack.default_scale * ccRefScale(cw, ch)) : Math.round(ch * 0.6);
+    targetH = Math.max(20, Math.min(targetH, Math.round(ch * 0.9)));
 
     // nl built but not pushed/set as activeLayer until probe.onload resolves the true ar, so the outline never renders at a placeholder square size
     const nl = { type: 'img', src, w: targetH, h: targetH, x: Math.round(cw * 0.3), y: Math.round(ch * 0.2), rotation: 0, flipped: false, packData: pack, id: Date.now() };
@@ -4463,6 +4483,11 @@ function addSpriteToCanvas(src, pack) {
                 if (isCharacter) {
                     nl.h = targetH;
                     nl.w = Math.round(targetH * fallback.naturalWidth / fallback.naturalHeight);
+                    // no trim possible here, so measure every later pose the same untrimmed way
+                    nl.charHeight = targetH;
+                    nl.charScale = targetH / fallback.naturalHeight;
+                    nl._rawBasis = true;
+                    nl.insertW = nl.w; nl.insertH = nl.h;
                 } else {
                     nl.h = Math.round(nl.w * fallback.naturalHeight / fallback.naturalWidth);
                 }
@@ -4479,7 +4504,8 @@ function addSpriteToCanvas(src, pack) {
 function addText(type) {
     saveState();
     const cw = canvas.offsetWidth || 300, ch = canvas.offsetHeight || 300;
-    const nl = { type: 'text', content: 'Text', fontSize: 24, fontFamily: mobLastFont("'Inter', sans-serif"), color: '#000', x: Math.round(cw*0.2), y: Math.round(ch*0.3), w: 160, rotation: 0, id: Date.now() };
+    const rs = ccRefScale(cw, ch);
+    const nl = { type: 'text', content: 'Text', fontSize: Math.round(24 * rs), fontFamily: mobLastFont("'Inter', sans-serif"), color: '#000', x: Math.round(cw*0.2), y: Math.round(ch*0.3), w: Math.round(160 * rs), rotation: 0, id: Date.now() };
     frames[currentIdx].layers.push(nl);
     activeLayer = nl;
     render();
@@ -4487,7 +4513,7 @@ function addText(type) {
 function addSubtitle() {
     saveState();
     const cw = canvas.offsetWidth || 300, ch = canvas.offsetHeight || 300;
-    const nl = { type: 'subtitle', content: 'Subtitle', fontSize: 16, x: 0, y: Math.round(ch * 0.85), w: cw, rotation: 0, id: Date.now() };
+    const nl = { type: 'subtitle', content: 'Subtitle', fontSize: Math.round(16 * ccRefScale(cw, ch)), x: 0, y: Math.round(ch * 0.85), w: cw, rotation: 0, id: Date.now() };
     frames[currentIdx].layers.push(nl);
     activeLayer = nl;
     render();
