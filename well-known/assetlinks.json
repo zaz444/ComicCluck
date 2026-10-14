@@ -1,0 +1,12 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.domdog.ComicCluck",
+    "sha256_cert_fingerprints": [
+      "2F:89:CE:14:F7:49:36:26:AE:79:15:58:6E:EA:98:42:A4:16:45:91:77:97:1E:E7:AC:03:54:21:7D:03:4A:E5",
+      "59:B5:3E:3F:F3:D0:F5:EA:F6:A2:84:B8:CA:95:32:74:69:02:7C:D7:D0:E9:05:6B:2A:91:C1:14:F2:96:E2:0F",
+      "FA:E5:FA:B7:C8:FC:F5:E9:68:6D:09:09:1B:54:99:59:3C:3D:82:A6:1C:FD:67:AF:80:3F:20:B2:DE:14:12:AD"
+    ]
+  }
+}]
