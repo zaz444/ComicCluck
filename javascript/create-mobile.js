@@ -6575,7 +6575,9 @@ async function ccFontStyleTag(ff) {
     } catch (e) { return ''; }
 }
 
-async function renderFrameToCanvas(frame, cw, ch) {
+// opts.strict: throws ASSET_LOAD_FAILED if any bg/sprite image couldn't load (after one retry), so a frame with missing images can never get baked into a snapshot or a downloadable image. Non-strict callers (editor previews, cover thumbs) keep the old forgiving behavior; tmp._failedAssets is always set so they can still check
+async function renderFrameToCanvas(frame, cw, ch, opts) {
+    const _failedAssets = [];
     const tmp = document.createElement('canvas');
     tmp.width = cw; tmp.height = ch;
     const ctx = tmp.getContext('2d');
@@ -6637,7 +6639,12 @@ async function renderFrameToCanvas(frame, cw, ch) {
                     ctx.filter = 'none'; ctx.globalAlpha = 1;
                     res2();
                 };
-                img.onerror = () => { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cw, ch); res2(); };
+                img.onerror = () => {
+                    // one retry — transient network blips shouldn't permanently bake a blank bg
+                    if (!img._retried) { img._retried = true; setTimeout(() => { img.src = src; }, 400); return; }
+                    _failedAssets.push(String(src).slice(0, 120));
+                    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cw, ch); res2();
+                };
                 img.src = src;
             });
             (async () => {
@@ -6737,7 +6744,12 @@ async function renderFrameToCanvas(frame, cw, ch) {
                     ctx.filter = 'none'; ctx.globalAlpha = 1; ctx.imageSmoothingEnabled = true;
                     res();
                 };
-                img.onerror = res; img.src = src;
+                img.onerror = () => {
+                    if (!img._retried) { img._retried = true; setTimeout(() => { img.src = src; }, 400); return; }
+                    _failedAssets.push(String(src).slice(0, 120));
+                    res();
+                };
+                img.src = src;
             });
 
             if (layer._fxSrc && bStrength < 100) {
@@ -6899,6 +6911,13 @@ async function renderFrameToCanvas(frame, cw, ch) {
         }
         if (_panel) ctx.restore();
     }
+    tmp._failedAssets = _failedAssets;
+    if (_failedAssets.length && opts && opts.strict) {
+        const err = new Error(_failedAssets.length + ' image(s) failed to load');
+        err.code = 'ASSET_LOAD_FAILED';
+        err.failed = _failedAssets;
+        throw err;
+    }
     return tmp;
 }
 
@@ -6947,7 +6966,7 @@ async function exportGIF() {
             var _fr=getFrameRatio(frames[i]);
             var _fs=computeCanvasSize(_fr.w,_fr.h);
             var _fcw=_fs.cw||cw, _fch=_fs.ch||ch;
-            var rawFrame=await renderFrameToCanvas(frames[i],_fcw,_fch);
+            var rawFrame=await renderFrameToCanvas(frames[i],_fcw,_fch,{strict:true});
             if (_fcw===cw && _fch===ch) {
                 renderedFrames.push(rawFrame);
             } else {
@@ -6977,7 +6996,7 @@ async function exportGIF() {
         });
         gif.on('error',function(err){statusEl.innerText='GIF failed: '+err;barEl.style.display='none';btn.disabled=false;btn.innerText='GENERATE GIF';});
         gif.render();
-    } catch(err) { statusEl.innerText='Error: '+err.message; barEl.style.display='none'; btn.disabled=false; btn.innerText='GENERATE GIF'; }
+    } catch(err) { statusEl.innerText=(err && err.code==='ASSET_LOAD_FAILED') ? ('A frame has images that didn\'t load, so the GIF wasn\'t made. Check your connection and try again.') : ('Error: '+err.message); barEl.style.display='none'; btn.disabled=false; btn.innerText='GENERATE GIF'; }
 }
 
 async function exportStrip() {
@@ -6997,7 +7016,7 @@ async function exportStrip() {
         for (var i=0;i<frames.length;i++) {
             statusEl.innerText='Frame '+(i+1)+' / '+frames.length;
             var _fcw=frameSizes[i].cw, _fch=frameSizes[i].ch;
-            var fc=await renderFrameToCanvas(frames[i],_fcw,_fch);
+            var fc=await renderFrameToCanvas(frames[i],_fcw,_fch,{strict:true});
             var row=Math.floor(i/cols), col=i%cols;
             var cellX=pad+col*(cw+pad), cellY=pad+row*(ch+pad);
             // fill cell then center frame
@@ -7016,7 +7035,7 @@ async function exportStrip() {
         await mobileDownload(dataUrl,'comic-strip.png');
         statusEl.innerText='Done! If the save dialog didn\'t appear, long-press the preview image.';
     } catch(err) {
-        statusEl.innerText='Error: '+(err && err.message ? err.message : err);
+        statusEl.innerText=(err && err.code==='ASSET_LOAD_FAILED') ? ('Frame '+(i+1)+' has images that didn\'t load, so nothing was saved. Check your connection and try again.') : ('Error: '+(err && err.message ? err.message : err));
     }
 }
 
@@ -7030,7 +7049,7 @@ async function openExportFramesTab() {
             var _fr=getFrameRatio(frames[i]);
             var _fs=computeCanvasSize(_fr.w,_fr.h);
             var cw=_fs.cw||canvas.offsetWidth||400, ch=_fs.ch||canvas.offsetHeight||400;
-            var fc=await renderFrameToCanvas(frames[i],cw,ch);
+            var fc=await renderFrameToCanvas(frames[i],cw,ch,{strict:true});
             var dataUrl=fc.toDataURL('image/png');
             var wrap=document.createElement('div');
             wrap.style.cssText='position:relative;border-radius:10px;overflow:hidden;border:2px solid #333;cursor:pointer;';
@@ -7046,7 +7065,7 @@ async function openExportFramesTab() {
         } catch(e) {
             var errBox=document.createElement('div');
             errBox.style.cssText='border:2px dashed #a33;border-radius:10px;padding:10px;color:#f88;font-size:11px;';
-            errBox.innerText='Frame '+(i+1)+' failed to render'+(e && e.message ? (': '+e.message) : '');
+            errBox.innerText=(e && e.code==='ASSET_LOAD_FAILED') ? ('Frame '+(i+1)+' has images that didn\'t load, so it can\'t be saved. Check your connection and reopen Export.') : ('Frame '+(i+1)+' failed to render'+(e && e.message ? (': '+e.message) : ''));
             built.appendChild(errBox);
         }
     }

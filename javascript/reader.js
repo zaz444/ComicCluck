@@ -1726,12 +1726,14 @@ async function loadUserRating() {
 
 async function submitRating() {
   if (currentRating < 1 || currentRating > 5) return;
+  // closeRatingModal() resets currentRating to 0, so grab the picked value first or the toast says 0 stars
+  const rated = currentRating;
 
   try {
     if (userRating > 0) {
       // update existing rating
       await _sb.from('messages').update({
-        content: currentRating.toString(),
+        content: rated.toString(),
         created_at: new Date().toISOString()
       })
       .eq('sender_handle', myP.handle)
@@ -1742,14 +1744,14 @@ async function submitRating() {
       await _sb.from('messages').insert([{
         sender_handle: myP.handle,
         receiver_hand: comicId,
-        content: currentRating.toString(),
+        content: rated.toString(),
         reaction: 'rating'
       }]);
     }
 
-    userRating = currentRating;
+    userRating = rated;
     closeRatingModal();
-    showToast(`⭐ Rated ${currentRating} star${currentRating > 1 ? 's' : ''}!`);
+    showToast(`⭐ Rated ${rated} star${rated > 1 ? 's' : ''}!`);
     updStar();  // update ui
   } catch (error) {
     showToast('Error saving rating');
