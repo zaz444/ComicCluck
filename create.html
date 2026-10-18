@@ -4906,7 +4906,9 @@ async function ccFontStyleTag(ff) {
     } catch (e) { return ''; }
 }
 
-    async function frameToCanvas(frameIdx, size) {
+    // opts.strict: throws ASSET_LOAD_FAILED if any bg/sprite image can't load (after one retry), so a frame with missing images can never be exported as a downloadable image. Without it (snapshots, previews) behavior is unchanged
+    async function frameToCanvas(frameIdx, size, opts) {
+        const _failedAssets = [];
         const f = frames[frameIdx];
         const offscreen = document.createElement('canvas');
 
@@ -4977,7 +4979,12 @@ async function ccFontStyleTag(ff) {
                     ctx.restore();
                     res();
                 };
-                img.onerror = () => { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, offW, offH); res(); };
+                img.onerror = () => {
+                    // one retry so a transient network blip doesn't block the export
+                    if (!img._retried) { img._retried = true; setTimeout(() => { img.src = bg; }, 400); return; }
+                    _failedAssets.push(String(bg).slice(0, 120));
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, offW, offH); res();
+                };
                 img.src = bg;
             });
         } else if (isBgGradient) {
@@ -5050,7 +5057,12 @@ async function ccFontStyleTag(ff) {
                         ctx.filter = 'none'; ctx.globalAlpha = 1;
                         res();
                     };
-                    img.onerror = res; img.src = src;
+                    img.onerror = () => {
+                        if (!img._retried) { img._retried = true; setTimeout(() => { img.src = src; }, 400); return; }
+                        _failedAssets.push(String(src).slice(0, 120));
+                        res();
+                    };
+                    img.src = src;
                 });
 
                 if (l._fxSrc && bStrength < 100) {
@@ -5170,6 +5182,14 @@ async function ccFontStyleTag(ff) {
                 });
             }
         }
+        offscreen._failedAssets = _failedAssets;
+        if (_failedAssets.length && opts && opts.strict) {
+            const err = new Error('Frame ' + (frameIdx + 1) + " has images that didn't load");
+            err.code = 'ASSET_LOAD_FAILED';
+            err.frameIndex = frameIdx;
+            err.failed = _failedAssets;
+            throw err;
+        }
         return offscreen;
     }
 
@@ -5204,7 +5224,7 @@ async function ccFontStyleTag(ff) {
             for (let i = 0; i < frames.length; i++) {
                 fill.style.width = Math.round((i / frames.length) * 60) + '%';
                 status.innerText = `Rendering frame ${i+1} / ${frames.length}…`;
-                const fc = await frameToCanvas(i, size);
+                const fc = await frameToCanvas(i, size, { strict: true });
                 gif.addFrame(fc, { delay, copy: true });
             }
 
@@ -5226,7 +5246,8 @@ async function ccFontStyleTag(ff) {
 
             gif.render();
         } catch(err) {
-            status.innerText = 'Error: ' + err.message;
+            status.innerText = (err && err.code === 'ASSET_LOAD_FAILED') ? ('Frame ' + (err.frameIndex + 1) + " has images that didn't load, so the GIF wasn't made. Check your connection and try again.") : ('Error: ' + err.message);
+            bar.style.display = 'none'; fill.style.width = '0%';
             btn.disabled = false; btn.innerText = 'GENERATE GIF';
         }
     }
@@ -5264,7 +5285,7 @@ async function ccFontStyleTag(ff) {
             // Draw each frame cell
             for (let i = 0; i < frames.length; i++) {
                 status.innerText = `Rendering frame ${i+1} / ${frames.length}…`;
-                const fc = await frameToCanvas(i, cellSize);
+                const fc = await frameToCanvas(i, cellSize, { strict: true });
                 const col = i % cols;
                 const row = Math.floor(i / cols);
                 ctx.drawImage(fc, col * cellW, row * cellH, cellW, cellH);
@@ -5310,7 +5331,7 @@ async function ccFontStyleTag(ff) {
             btn.disabled = false; btn.innerText = 'SAVE STRIP';
             status.innerText = '✓ Strip saved!';
         } catch(err) {
-            status.innerText = 'Error: ' + err.message;
+            status.innerText = (err && err.code === 'ASSET_LOAD_FAILED') ? ('Frame ' + (err.frameIndex + 1) + " has images that didn't load, so nothing was saved. Check your connection and try again.") : ('Error: ' + err.message);
             btn.disabled = false; btn.innerText = 'SAVE STRIP';
         }
     }
