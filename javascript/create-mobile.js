@@ -6575,6 +6575,21 @@ async function ccFontStyleTag(ff) {
     } catch (e) { return ''; }
 }
 
+// Loads a remote image as a same-origin blob: URL so drawing it can't taint the canvas (a cached copy fetched without CORS headers is a classic cause of 'Tainted canvases may not be exported'). force=true bypasses the HTTP cache for the retry. If fetch fails we hand back the original src and let the normal crossOrigin load decide
+const _safeImgCache = new Map();
+async function _safeImgSrc(src, force) {
+    if (!src || /^(data|blob):/.test(src)) return src;
+    if (!force && _safeImgCache.has(src)) return _safeImgCache.get(src);
+    try {
+        const r = await fetch(src, { mode: 'cors', cache: force ? 'reload' : 'default' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const u = URL.createObjectURL(await r.blob());
+        _safeImgCache.set(src, u);
+        if (_safeImgCache.size > 60) { const k = _safeImgCache.keys().next().value; URL.revokeObjectURL(_safeImgCache.get(k)); _safeImgCache.delete(k); }
+        return u;
+    } catch (e) { return src; }
+}
+
 // opts.strict: throws ASSET_LOAD_FAILED if any bg/sprite image couldn't load (after one retry), so a frame with missing images can never get baked into a snapshot or a downloadable image. Non-strict callers (editor previews, cover thumbs) keep the old forgiving behavior; tmp._failedAssets is always set so they can still check
 async function renderFrameToCanvas(frame, cw, ch, opts) {
     const _failedAssets = [];
@@ -6641,11 +6656,11 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
                 };
                 img.onerror = () => {
                     // one retry — transient network blips shouldn't permanently bake a blank bg
-                    if (!img._retried) { img._retried = true; setTimeout(() => { img.src = src; }, 400); return; }
+                    if (!img._retried) { img._retried = true; setTimeout(() => { _safeImgSrc(src, true).then(u => { img.src = u; }); }, 400); return; }
                     _failedAssets.push(String(src).slice(0, 120));
                     ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cw, ch); res2();
                 };
-                img.src = src;
+                _safeImgSrc(src).then(u => { img.src = u; });
             });
             (async () => {
                 if (bgHasFxSrc && bgFxStrength < 100) {
@@ -6745,11 +6760,11 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
                     res();
                 };
                 img.onerror = () => {
-                    if (!img._retried) { img._retried = true; setTimeout(() => { img.src = src; }, 400); return; }
+                    if (!img._retried) { img._retried = true; setTimeout(() => { _safeImgSrc(src, true).then(u => { img.src = u; }); }, 400); return; }
                     _failedAssets.push(String(src).slice(0, 120));
                     res();
                 };
-                img.src = src;
+                _safeImgSrc(src).then(u => { img.src = u; });
             });
 
             if (layer._fxSrc && bStrength < 100) {
@@ -6875,8 +6890,8 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
                 }
                 ctx.restore();
             };
-            const ccStyle = await ccFontStyleTag(ff);
-            await new Promise(res => {
+            const ccStyle = (opts && opts.plainText) ? '' : await ccFontStyleTag(ff);
+            if (opts && opts.plainText) drawFallback(); else await new Promise(res => {
                 let settled = false, url = null;
                 const finish = () => {
                     if (settled) return;
@@ -6912,6 +6927,16 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
         if (_panel) ctx.restore();
     }
     tmp._failedAssets = _failedAssets;
+    if (opts && opts.strict && !_failedAssets.length) {
+        try { ctx.getImageData(0, 0, 1, 1); }
+        catch (e) {
+            // canvas is tainted — usually the svg text render. redo the frame once with canvas-drawn text; if still tainted it's an image
+            if (!opts.plainText) return renderFrameToCanvas(frame, cw, ch, Object.assign({}, opts, { plainText: true }));
+            const terr = new Error('canvas tainted');
+            terr.code = 'CANVAS_TAINTED';
+            throw terr;
+        }
+    }
     if (_failedAssets.length && opts && opts.strict) {
         const err = new Error(_failedAssets.length + ' image(s) failed to load');
         err.code = 'ASSET_LOAD_FAILED';
@@ -6996,7 +7021,7 @@ async function exportGIF() {
         });
         gif.on('error',function(err){statusEl.innerText='GIF failed: '+err;barEl.style.display='none';btn.disabled=false;btn.innerText='GENERATE GIF';});
         gif.render();
-    } catch(err) { statusEl.innerText=(err && err.code==='ASSET_LOAD_FAILED') ? ('A frame has images that didn\'t load, so the GIF wasn\'t made. Check your connection and try again.') : ('Error: '+err.message); barEl.style.display='none'; btn.disabled=false; btn.innerText='GENERATE GIF'; }
+    } catch(err) { statusEl.innerText=(err && err.code==='CANVAS_TAINTED') ? ('A frame has an image the browser blocks from exporting (cross-origin), so the GIF wasn\'t made. Re-upload that image and try again.') : (err && err.code==='ASSET_LOAD_FAILED') ? ('A frame has images that didn\'t load, so the GIF wasn\'t made. Check your connection and try again.') : ('Error: '+err.message); barEl.style.display='none'; btn.disabled=false; btn.innerText='GENERATE GIF'; }
 }
 
 async function exportStrip() {
@@ -7035,7 +7060,7 @@ async function exportStrip() {
         await mobileDownload(dataUrl,'comic-strip.png');
         statusEl.innerText='Done! If the save dialog didn\'t appear, long-press the preview image.';
     } catch(err) {
-        statusEl.innerText=(err && err.code==='ASSET_LOAD_FAILED') ? ('Frame '+(i+1)+' has images that didn\'t load, so nothing was saved. Check your connection and try again.') : ('Error: '+(err && err.message ? err.message : err));
+        statusEl.innerText=(err && err.code==='CANVAS_TAINTED') ? ('Frame '+(i+1)+' has an image the browser blocks from exporting (cross-origin), so nothing was saved. Re-upload that image and try again.') : (err && err.code==='ASSET_LOAD_FAILED') ? ('Frame '+(i+1)+' has images that didn\'t load, so nothing was saved. Check your connection and try again.') : ('Error: '+(err && err.message ? err.message : err));
     }
 }
 
@@ -7065,7 +7090,7 @@ async function openExportFramesTab() {
         } catch(e) {
             var errBox=document.createElement('div');
             errBox.style.cssText='border:2px dashed #a33;border-radius:10px;padding:10px;color:#f88;font-size:11px;';
-            errBox.innerText=(e && e.code==='ASSET_LOAD_FAILED') ? ('Frame '+(i+1)+' has images that didn\'t load, so it can\'t be saved. Check your connection and reopen Export.') : ('Frame '+(i+1)+' failed to render'+(e && e.message ? (': '+e.message) : ''));
+            errBox.innerText=(e && e.code==='CANVAS_TAINTED') ? ('Frame '+(i+1)+' has an image the browser blocks from exporting (cross-origin), so it can\'t be saved. Re-upload that image and reopen Export.') : (e && e.code==='ASSET_LOAD_FAILED') ? ('Frame '+(i+1)+' has images that didn\'t load, so it can\'t be saved. Check your connection and reopen Export.') : ('Frame '+(i+1)+' failed to render'+(e && e.message ? (': '+e.message) : ''));
             built.appendChild(errBox);
         }
     }
