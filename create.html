@@ -4906,6 +4906,21 @@ async function ccFontStyleTag(ff) {
     } catch (e) { return ''; }
 }
 
+    // Loads a remote image as a same-origin blob: URL so drawing it can't taint the canvas (a cached copy fetched without CORS headers is a classic cause of 'Tainted canvases may not be exported'). force=true bypasses the HTTP cache for the retry. If fetch fails we return the original src and let the normal crossOrigin load decide
+    const _safeImgCache = new Map();
+    async function _safeImgSrc(src, force) {
+        if (!src || /^(data|blob):/.test(src)) return src;
+        if (!force && _safeImgCache.has(src)) return _safeImgCache.get(src);
+        try {
+            const r = await fetch(src, { mode: 'cors', cache: force ? 'reload' : 'default' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            const u = URL.createObjectURL(await r.blob());
+            _safeImgCache.set(src, u);
+            if (_safeImgCache.size > 60) { const k = _safeImgCache.keys().next().value; URL.revokeObjectURL(_safeImgCache.get(k)); _safeImgCache.delete(k); }
+            return u;
+        } catch (e) { return src; }
+    }
+
     // opts.strict: throws ASSET_LOAD_FAILED if any bg/sprite image can't load (after one retry), so a frame with missing images can never be exported as a downloadable image. Without it (snapshots, previews) behavior is unchanged
     async function frameToCanvas(frameIdx, size, opts) {
         const _failedAssets = [];
@@ -4981,11 +4996,11 @@ async function ccFontStyleTag(ff) {
                 };
                 img.onerror = () => {
                     // one retry so a transient network blip doesn't block the export
-                    if (!img._retried) { img._retried = true; setTimeout(() => { img.src = bg; }, 400); return; }
+                    if (!img._retried) { img._retried = true; setTimeout(() => { _safeImgSrc(bg, true).then(u => { img.src = u; }); }, 400); return; }
                     _failedAssets.push(String(bg).slice(0, 120));
                     ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, offW, offH); res();
                 };
-                img.src = bg;
+                _safeImgSrc(bg).then(u => { img.src = u; });
             });
         } else if (isBgGradient) {
             // Parse and draw CSS gradient onto canvas
@@ -5058,11 +5073,11 @@ async function ccFontStyleTag(ff) {
                         res();
                     };
                     img.onerror = () => {
-                        if (!img._retried) { img._retried = true; setTimeout(() => { img.src = src; }, 400); return; }
+                        if (!img._retried) { img._retried = true; setTimeout(() => { _safeImgSrc(src, true).then(u => { img.src = u; }); }, 400); return; }
                         _failedAssets.push(String(src).slice(0, 120));
                         res();
                     };
-                    img.src = src;
+                    _safeImgSrc(src).then(u => { img.src = u; });
                 });
 
                 if (l._fxSrc && bStrength < 100) {
@@ -5150,8 +5165,15 @@ async function ccFontStyleTag(ff) {
                 }
 
                 // Render HTML into an image via SVG foreignObject, then draw onto canvas
-                const ccStyle = await ccFontStyleTag(ff);
-                await new Promise(res => {
+                const ccStyle = (opts && opts.plainText) ? '' : await ccFontStyleTag(ff);
+                if (opts && opts.plainText) {
+                    // canvas-drawn text can't taint the canvas (used when the svg text render did)
+                    ctx.save();
+                    ctx.font = `${boldW} ${fs}px ${ff}`;
+                    ctx.fillStyle = textColor;
+                    ctx.fillText(l.content || '', bx, by + fs, bw);
+                    ctx.restore();
+                } else await new Promise(res => {
                     try {
                         const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="${bw + 60}" height="${offH}">
                             ${ccStyle}
@@ -5183,6 +5205,17 @@ async function ccFontStyleTag(ff) {
             }
         }
         offscreen._failedAssets = _failedAssets;
+        if (opts && opts.strict && !_failedAssets.length) {
+            try { ctx.getImageData(0, 0, 1, 1); }
+            catch (e) {
+                // tainted — usually the svg text render. redo the frame once with canvas-drawn text; if still tainted it's an image
+                if (!opts.plainText) return frameToCanvas(frameIdx, size, Object.assign({}, opts, { plainText: true }));
+                const terr = new Error('Frame ' + (frameIdx + 1) + ' canvas tainted');
+                terr.code = 'CANVAS_TAINTED';
+                terr.frameIndex = frameIdx;
+                throw terr;
+            }
+        }
         if (_failedAssets.length && opts && opts.strict) {
             const err = new Error('Frame ' + (frameIdx + 1) + " has images that didn't load");
             err.code = 'ASSET_LOAD_FAILED';
@@ -5246,7 +5279,7 @@ async function ccFontStyleTag(ff) {
 
             gif.render();
         } catch(err) {
-            status.innerText = (err && err.code === 'ASSET_LOAD_FAILED') ? ('Frame ' + (err.frameIndex + 1) + " has images that didn't load, so the GIF wasn't made. Check your connection and try again.") : ('Error: ' + err.message);
+            status.innerText = (err && err.code === 'CANVAS_TAINTED') ? ('Frame ' + (err.frameIndex + 1) + " has an image the browser blocks from exporting (cross-origin), so the GIF wasn't made. Re-upload that image and try again.") : (err && err.code === 'ASSET_LOAD_FAILED') ? ('Frame ' + (err.frameIndex + 1) + " has images that didn't load, so the GIF wasn't made. Check your connection and try again.") : ('Error: ' + err.message);
             bar.style.display = 'none'; fill.style.width = '0%';
             btn.disabled = false; btn.innerText = 'GENERATE GIF';
         }
@@ -5331,7 +5364,7 @@ async function ccFontStyleTag(ff) {
             btn.disabled = false; btn.innerText = 'SAVE STRIP';
             status.innerText = '✓ Strip saved!';
         } catch(err) {
-            status.innerText = (err && err.code === 'ASSET_LOAD_FAILED') ? ('Frame ' + (err.frameIndex + 1) + " has images that didn't load, so nothing was saved. Check your connection and try again.") : ('Error: ' + err.message);
+            status.innerText = (err && err.code === 'CANVAS_TAINTED') ? ('Frame ' + (err.frameIndex + 1) + " has an image the browser blocks from exporting (cross-origin), so nothing was saved. Re-upload that image and try again.") : (err && err.code === 'ASSET_LOAD_FAILED') ? ('Frame ' + (err.frameIndex + 1) + " has images that didn't load, so nothing was saved. Check your connection and try again.") : ('Error: ' + err.message);
             btn.disabled = false; btn.innerText = 'SAVE STRIP';
         }
     }
