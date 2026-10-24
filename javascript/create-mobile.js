@@ -404,7 +404,7 @@ function renderFrameAutoplay() {
     chk.disabled = !hasAudio;
     document.getElementById('ap-sound-label').classList.toggle('disabled', !hasAudio);
     document.getElementById('ap-sound-hint').innerText = !hasAudio
-        ? 'Add audio to this frame first (🔊 Audio)'
+        ? 'Add audio first'
         : (chk.checked ? 'Moves on when the sound ends. The time above is the backup if sound can\'t play.' : '');
 }
 function toggleFrameAutoplay() {
