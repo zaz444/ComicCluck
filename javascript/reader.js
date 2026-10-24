@@ -85,6 +85,7 @@ function closeTsDirModal() {
 function enableToonScroll(dir, fromConfig = false) {
     closeTsDirModal();
     toonScrollMode = 'on';
+    _apClear(); _apIdx = -1; _apUpdateBtn(null);
     toonScrollDir = dir;
     localStorage.setItem('cc-toonscroll', 'on');
     localStorage.setItem('cc-toonscroll-dir', dir);
@@ -1321,10 +1322,10 @@ function syncFrameAudio(f) {
   audioEl.src = f.audio_url;
   audioEl.currentTime = start;
   const end = f.audio_end != null ? f.audio_end : Infinity;
-  audioEl.ontimeupdate = () => { if (audioEl.currentTime >= end) audioEl.pause(); };
+  audioEl.ontimeupdate = () => { if (audioEl.currentTime >= end) { audioEl.pause(); _apAudioDone(); } };
   audioEl.onplay  = () => { btn.classList.add('playing');    btn.innerText = '⏸'; };
   audioEl.onpause = () => { btn.classList.remove('playing'); btn.innerText = '🔈'; };
-  audioEl.onended = () => { btn.classList.remove('playing'); btn.innerText = '🔈'; };
+  audioEl.onended = () => { btn.classList.remove('playing'); btn.innerText = '🔈'; _apAudioDone(); };
 
   // browsers block unmuted autoplay until first interaction, keep auto-resuming after that
   if (_audioUnlocked) {
@@ -1333,6 +1334,107 @@ function syncFrameAudio(f) {
     btn.classList.remove('playing');
     btn.innerText = '🔈';
   }
+}
+
+// -- frame autoplay --
+// creator sets per frame in the editor: autoplay (bool), autoplay_sec (seconds), autoplay_sound (bool).
+// timed: advance after autoplay_sec. sound: advance when the frame's clip ends (timer is the backup if the browser blocks the sound).
+// only runs in normal reader mode (ToonScroll is a free scroll) and never auto-advances off the last frame.
+const AP_DEFAULT_SEC = 3;
+let _apTimer = null;        // pending advance timeout
+let _apIdx = -1;            // frame idx the current schedule belongs to
+let _apWaitSound = false;   // true while waiting on the clip to finish
+let _apPaused = false;      // reader hit pause, stays paused until they resume
+
+function _apClear() {
+  clearTimeout(_apTimer); _apTimer = null; _apWaitSound = false;
+}
+
+function _apSec(f) {
+  const s = parseFloat(f && f.autoplay_sec);
+  return Math.max(0.5, Math.min(120, isFinite(s) ? s : AP_DEFAULT_SEC));
+}
+
+// dont advance behind an open sheet/modal, a hidden tab, or the finish card
+function _apBlocked() {
+  if (document.hidden) return true;
+  if (['share-sheet', 'comment-overlay', 'ts-dir-modal'].some(id => document.getElementById(id)?.classList.contains('open'))) return true;
+  const rm = document.getElementById('rating-modal');
+  if (rm && rm.style.display === 'flex') return true;
+  const fin = document.getElementById('finish');
+  if (fin && fin.style.display === 'flex') return true;
+  return false;
+}
+
+function _apTryAdvance() {
+  _apClear();
+  if (_apPaused || toonScrollMode !== 'off') return;
+  if (_apBlocked()) { _apTimer = setTimeout(_apTryAdvance, 400); return; }
+  if (idx < frames.length - 1) nextFrame();
+}
+
+// last frame of an audio span is the only one that waits on the clip, earlier ones are timed so the shared clip keeps playing
+function _apIsLastInSpan(f, i) {
+  if (f.audio_span_start == null || f.audio_span_len == null) return true;
+  const orig = f._readerOrigIdx != null ? f._readerOrigIdx : i;
+  return orig >= f.audio_span_start + f.audio_span_len - 1;
+}
+
+function _apAudioDone() {
+  if (_apWaitSound) _apTryAdvance();
+}
+
+function _apUpdateBtn(f) {
+  const b = document.getElementById('r-ap-btn');
+  if (!b) return;
+  const show = !!(f && f.autoplay) && toonScrollMode === 'off' && idx < frames.length - 1;
+  b.classList.toggle('has-ap', show);
+  b.classList.toggle('paused', show && _apPaused);
+  b.innerText = _apPaused ? '▶' : '⏸';
+  b.title = _apPaused ? 'Resume autoplay' : 'Pause autoplay';
+}
+
+// called from renderFrame. re-renders of the same frame (fullscreen, resize) leave the running timer alone
+function _apSchedule(f) {
+  _apUpdateBtn(f);
+  if (_apIdx === idx && (_apTimer || _apWaitSound)) return;
+  _apClear();
+  _apIdx = idx;
+  if (!f || !f.autoplay || _apPaused || toonScrollMode !== 'off' || idx >= frames.length - 1) return;
+
+  const audioEl = document.getElementById('r-frame-audio');
+  const wantsSound = !!(f.autoplay_sound && f.audio_url && _apIsLastInSpan(f, idx));
+  if (wantsSound) {
+    _apWaitSound = true;
+    // if the sound never starts (browser autoplay block), fall back to the timed duration instead of getting stuck
+    const startedFor = idx;
+    _apTimer = setTimeout(() => {
+      _apTimer = null;
+      if (idx !== startedFor || !_apWaitSound) return;
+      const playing = audioEl && audioEl.src && !audioEl.paused && !audioEl.ended;
+      if (!playing) {
+        _apWaitSound = false;
+        _apTimer = setTimeout(_apTryAdvance, Math.max(0, _apSec(f) * 1000 - 1500));
+      }
+    }, 1500);
+    return;
+  }
+  _apTimer = setTimeout(_apTryAdvance, _apSec(f) * 1000);
+}
+
+function toggleAutoplayPause() {
+  _apPaused = !_apPaused;
+  _audioUnlocked = true;  // a tap here counts as the user gesture that lets the sound play
+  if (_apPaused) {
+    _apClear();
+  } else {
+    _apIdx = -1;  // force a fresh schedule for the frame on screen
+    const audioEl = document.getElementById('r-frame-audio');
+    if (audioEl && audioEl.src && audioEl.paused && !audioEl.ended) audioEl.play().catch(() => {});
+    _apSchedule(frames[idx]);
+  }
+  _apUpdateBtn(frames[idx]);
+  showToast(_apPaused ? 'Autoplay paused' : 'Autoplay on');
 }
 
 function toggleFrameAudio() {
@@ -1361,6 +1463,7 @@ function renderFrame() {
   if (!f) return;
 
   syncFrameAudio(f);
+  _apSchedule(f);
 
   const el = getActiveCf();
 

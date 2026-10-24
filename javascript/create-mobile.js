@@ -381,6 +381,70 @@ function flashClippingLayers(idx) {
     }, 3500);
 }
 
+// frame autoplay. per-frame fields (reader reads the same names): autoplay (bool), autoplay_sec (seconds), autoplay_sound (bool, advance when the frame's audio ends instead of by time)
+const AUTOPLAY_DEFAULT_SEC = 3, AUTOPLAY_MIN_SEC = 0.5, AUTOPLAY_MAX_SEC = 120;
+function clampAutoplaySec(v) {
+    v = parseFloat(v);
+    if (!isFinite(v)) v = AUTOPLAY_DEFAULT_SEC;
+    return Math.round(Math.max(AUTOPLAY_MIN_SEC, Math.min(AUTOPLAY_MAX_SEC, v)) * 10) / 10;
+}
+function renderFrameAutoplay() {
+    const tog = document.getElementById('ap-toggle');
+    if (!tog) return;
+    const f = frames[currentIdx] || {};
+    const on = !!f.autoplay;
+    const hasAudio = !!f.audio_url;
+    document.getElementById('ap-frame-num').innerText = currentIdx + 1;
+    tog.classList.toggle('on', on);
+    document.getElementById('ap-dur-box').classList.toggle('off', !on);
+    document.getElementById('ap-dur-input').value = f.autoplay_sec != null ? f.autoplay_sec : AUTOPLAY_DEFAULT_SEC;
+    document.getElementById('ap-opts').style.display = on ? 'block' : 'none';
+    const chk = document.getElementById('ap-sound-chk');
+    chk.checked = !!f.autoplay_sound && hasAudio;
+    chk.disabled = !hasAudio;
+    document.getElementById('ap-sound-label').classList.toggle('disabled', !hasAudio);
+    document.getElementById('ap-sound-hint').innerText = !hasAudio
+        ? 'Add audio to this frame first (🔊 Audio)'
+        : (chk.checked ? 'Moves on when the sound ends. The time above is the backup if sound can\'t play.' : '');
+}
+function toggleFrameAutoplay() {
+    const f = frames[currentIdx]; if (!f) return;
+    saveState();
+    f.autoplay = !f.autoplay;
+    if (f.autoplay && f.autoplay_sec == null) f.autoplay_sec = AUTOPLAY_DEFAULT_SEC;
+    hasUnsavedChanges = true;
+    renderFrameAutoplay(); renderMobFrames();
+}
+function setFrameAutoplayDuration(val) {
+    const f = frames[currentIdx]; if (!f) return;
+    saveState();
+    f.autoplay_sec = clampAutoplaySec(val);
+    f.autoplay = true; // typing a time means they want it on
+    hasUnsavedChanges = true;
+    renderFrameAutoplay(); renderMobFrames();
+}
+function toggleFrameAutoplaySound(on) {
+    const f = frames[currentIdx]; if (!f) return;
+    if (on && !f.audio_url) { renderFrameAutoplay(); return; }
+    saveState();
+    f.autoplay_sound = !!on;
+    hasUnsavedChanges = true;
+    renderFrameAutoplay(); renderMobFrames();
+}
+function applyAutoplayToAll() {
+    const src = frames[currentIdx]; if (!src) return;
+    saveState();
+    frames.forEach(fr => {
+        fr.autoplay = !!src.autoplay;
+        fr.autoplay_sec = src.autoplay_sec != null ? src.autoplay_sec : AUTOPLAY_DEFAULT_SEC;
+        // end-on-sound only makes sense where a frame has its own audio
+        fr.autoplay_sound = !!src.autoplay_sound && !!fr.audio_url;
+    });
+    hasUnsavedChanges = true;
+    renderFrameAutoplay(); renderMobFrames();
+    if (typeof showToast === 'function') showToast('Autoplay applied to all frames');
+}
+
 // sheet system
 function openSheet(name) {
     closeAllSheets();
@@ -2292,6 +2356,7 @@ function updateFrameCounter() {
     if (audioBadge) audioBadge.style.display = (frames[currentIdx] && frames[currentIdx].audio_url) ? 'inline-block' : 'none';
     // sync audio sheet ui if open
     if (document.getElementById('sheet-audio')?.classList.contains('open')) renderMobAudioSheet();
+    if (typeof renderFrameAutoplay === 'function') renderFrameAutoplay();
     // sync swipe strip dots
     renderFrameSwipeDots();
 }
@@ -2401,6 +2466,12 @@ function renderMobFrames() {
             ab.innerText = '🔊';
             thumb.appendChild(ab);
         }
+        if (f.autoplay) {
+            const apb = document.createElement('span');
+            apb.className = 'mob-frame-ap-badge';
+            apb.innerText = (f.autoplay_sound && f.audio_url) ? '⏱🔊' : ('⏱' + (f.autoplay_sec != null ? f.autoplay_sec : AUTOPLAY_DEFAULT_SEC) + 's');
+            thumb.appendChild(apb);
+        }
         // ratio badge only shown when a frame's ratio differs from frame 1
         const fr = getFrameRatio(f);
         const baseR = getFrameRatio(frames[0]);
@@ -2418,6 +2489,7 @@ function renderMobFrames() {
     });
     if (document.getElementById('mob-frame-label')) document.getElementById('mob-frame-label').innerText = (currentIdx + 1) + ' / ' + frames.length;
     if (typeof renderFrameRatioPicker === 'function') renderFrameRatioPicker();
+    renderFrameAutoplay();
 }
 
 // frame audio: 3-45s clip, optionally spanning frames. span frames share the same audio pair (dedup key) so it plays uninterrupted across swipes
