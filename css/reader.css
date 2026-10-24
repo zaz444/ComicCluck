@@ -470,6 +470,22 @@ transition:background .15s,border-color .15s,color .15s;
 #r-audio-btn.playing{background:rgba(0,210,255,.22);border-color:#00d2ff;color:#00d2ff;}
 #r-audio-btn:active{transform:scale(.92);}
 
+/* autoplay pause/resume, stacked just above the audio button */
+#r-ap-btn{
+position:fixed;bottom:calc(68px + env(safe-area-inset-bottom));left:14px;
+z-index:9999;display:none;
+width:46px;height:46px;border-radius:50%;
+background:rgba(15,15,17,.88);border:1.5px solid rgba(255,255,255,.18);
+color:#fff;font-size:16px;cursor:pointer;
+align-items:center;justify-content:center;
+backdrop-filter:blur(14px);
+box-shadow:0 2px 16px rgba(0,0,0,.5);
+transition:background .15s,border-color .15s,color .15s;
+}
+#r-ap-btn.has-ap{display:flex;}
+#r-ap-btn.paused{background:rgba(255,122,0,.22);border-color:#ff7a00;color:#ff7a00;}
+#r-ap-btn:active{transform:scale(.92);}
+
 .toonscroll-hint{
 position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
 background:rgba(0,0,0,.85);color:rgba(255,255,255,.7);
