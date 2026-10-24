@@ -2466,12 +2466,6 @@ function renderMobFrames() {
             ab.innerText = '🔊';
             thumb.appendChild(ab);
         }
-        if (f.autoplay) {
-            const apb = document.createElement('span');
-            apb.className = 'mob-frame-ap-badge';
-            apb.innerText = (f.autoplay_sound && f.audio_url) ? '⏱🔊' : ('⏱' + (f.autoplay_sec != null ? f.autoplay_sec : AUTOPLAY_DEFAULT_SEC) + 's');
-            thumb.appendChild(apb);
-        }
         // ratio badge only shown when a frame's ratio differs from frame 1
         const fr = getFrameRatio(f);
         const baseR = getFrameRatio(frames[0]);
