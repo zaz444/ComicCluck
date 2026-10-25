@@ -957,7 +957,7 @@
     async function fetchGallery() {
         // Show cache instantly while fresh data loads in background
         const cached = loadGalleryCache();
-        if (cached) { allGallerySprites = cached; initGalleryAfterFetch(); }
+        if (cached) { allGallerySprites = window.PosingStickman ? PosingStickman.withBuiltin(cached) : cached; initGalleryAfterFetch(); }
 
         // Fetch ALL metadata in chunks of 200 — metadata rows are tiny (no images)
         // Images are still lazy-loaded individually on scroll
@@ -985,8 +985,8 @@
         if (!allData.length && !cached) { showGridError('No sprites found in database'); return; }
         if (!allData.length) return; // keep cache displayed
 
-        allGallerySprites = allData;
-        saveGalleryCache(allData);
+        saveGalleryCache(allData); // cache only real rows
+        allGallerySprites = window.PosingStickman ? PosingStickman.withBuiltin(allData) : allData;
         initGalleryAfterFetch();
     }
 
@@ -1047,6 +1047,8 @@
 
     // Lazy image cache
     const imgCache = new Map();
+    // Posing Stickman is built in (rendered locally, not a DB row): pre-fill the image cache so the loaders never ask the database for it
+    try { if (window.PosingStickman) imgCache.set(PosingStickman.BUILTIN_ID, PosingStickman.fullData()); } catch (e) { console.warn('Posing Stickman unavailable', e); }
 
     // Batch-fetch images for a list of ids not yet in cache
     async function prefetchSpriteImages(ids) {
@@ -1252,7 +1254,7 @@
         const isOwner       = myHandleClean && myHandleClean === creatorClean;
 
         // Delete — admin can delete any sprite; owner can delete their own
-        if (isAdmin || isOwner) {
+        if ((isAdmin || isOwner) && !item.builtin) {
             const del = document.createElement('button');
             del.className = 'admin-del-btn';
             del.innerHTML = '<i class="fi fi-rs-trash"></i>' + (isAdmin && !isOwner ? 'Delete (admin)' : 'Delete my sprite');
@@ -1262,7 +1264,7 @@
         }
 
         // Admin-only tools
-        if (isAdmin) {
+        if (isAdmin && !item.builtin) {
             const mapBtn = document.createElement('button');
             mapBtn.className = 'admin-del-btn admin-tool-btn';
             mapBtn.innerHTML = '<i class="fi fi-rs-folder-tree"></i>Map Storage Actions';
@@ -1540,37 +1542,6 @@
         if (error) return null;
         return _supabase.storage.from('sprites').getPublicUrl(path).data.publicUrl;
     }
-
-    // one-time seeding: renders every pose of the Posing Stickman and publishes it like any other gallery sprite.
-    // run once from the console while logged in as the sprite's creator:  seedPosingStickman()
-    async function seedPosingStickman() {
-        const PS = window.PosingStickman;
-        if (!PS) { showToast('posing-stickman.js is not loaded'); return; }
-        if (!myHandle) { showToast('Log in first'); return; }
-        const { data: existing } = await _supabase.from(GALLERY_TABLE).select('id').eq('name', 'Posing Stickman').limit(1);
-        if (existing && existing.length && !confirm('Posing Stickman already exists in the gallery. Add another copy?')) return;
-        const folder = 'gallery/posing_stickman_' + Date.now();
-        const urls = {};
-        for (const [id, label] of PS.ORDER) {
-            showToast('Uploading ' + label + '…');
-            const path = folder + (id === 'idle' ? '/main.png' : '/actions/' + id + '.png');
-            const url = await uploadToGalleryStorage(path, PS.render(PS.makeRig(id)));
-            if (!url) { showToast('Upload failed on ' + label); return; }
-            urls[id] = url;
-        }
-        const actions = {};
-        PS.ORDER.forEach(([id, label]) => { if (id !== 'idle') actions[label] = urls[id]; });
-        const { error } = await _supabase.from(GALLERY_TABLE).insert([{
-            name: 'Posing Stickman',
-            image_data: urls.idle,
-            actions,
-            creator: myHandle.replace('@', ''),
-            tags: ['stickman', 'poser', 'joints', 'misc'],
-            default_scale: 400
-        }]);
-        showToast(error ? error.message : 'Posing Stickman added to the gallery!');
-    }
-    window.seedPosingStickman = seedPosingStickman;
 
     async function submitGalleryUpload() {
         const name = document.getElementById('up-name').value.trim();
