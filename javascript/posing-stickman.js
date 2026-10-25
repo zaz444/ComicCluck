@@ -190,7 +190,31 @@
     reposition();
   }
 
+  // ---- built-in gallery entry: no database row needed ----
+  // The gallery pages splice this in client-side, so it shows up like any other sprite (card, preview, tags, actions, editor picker)
+  var BUILTIN_ID = 'builtin-posing-stickman';
+  var BUILTIN_TAGS = ['stickman', 'poser', 'joints', 'misc'];
+  var _full = null;
+  function fullData() { // image_data + actions as data URLs, rendered once per page load
+    if (_full) return _full;
+    var actions = {}, main = null;
+    ORDER.forEach(function (o) { var u = render(makeRig(o[0])); if (o[0] === 'idle') main = u; else actions[o[1]] = u; });
+    _full = { id: BUILTIN_ID, name: 'Posing Stickman', creator: 'ComicCluck', tags: BUILTIN_TAGS.slice(), default_scale: 400,
+              image_data: main, actions: actions, builtin: true };
+    return _full;
+  }
+  function meta() { // same shape as the lean rows the gallery lists load from the database; newest date so it sits first under "Newest"
+    return { id: BUILTIN_ID, name: 'Posing Stickman', creator: 'ComicCluck', tags: BUILTIN_TAGS.slice(), default_scale: 400,
+             created_at: new Date().toISOString(), builtin: true };
+  }
+  function withBuiltin(list) {
+    list = list || [];
+    for (var i = 0; i < list.length; i++) if (list[i] && list[i].id === BUILTIN_ID) return list;
+    return [meta()].concat(list);
+  }
+
   var API = {
+    BUILTIN_ID: BUILTIN_ID, fullData: fullData, meta: meta, withBuiltin: withBuiltin,
     BOX: BOX, ORDER: ORDER, POSES: POSES, pts: pts, makeRig: makeRig, render: render, startDrag: startDrag, dragJoint: dragJoint,
     isRigPack: isRigPack, poseIdFor: poseIdFor, applyPose: applyPose, attachJointHandles: attachJointHandles
   };

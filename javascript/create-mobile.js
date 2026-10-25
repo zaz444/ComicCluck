@@ -4280,6 +4280,7 @@ function sbSetFullCache(id, imageData, actions, defaultScale) {
 }
 
 async function sbFetchFull(id) {
+    if (window.PosingStickman && id === PosingStickman.BUILTIN_ID) return PosingStickman.fullData(); // built-in, never in the DB
     // cache hit, no network
     const fullCached = sbGetFullCache(id);
     if (fullCached) return { image_data: fullCached.img, actions: fullCached.actions, default_scale: fullCached.default_scale || null };
@@ -8262,7 +8263,7 @@ async function loadMobGallery() {
             .order('id', { ascending: false });
         console.log('Mobile gallery fetch result:', { data, error });
         if (error) throw new Error(error.message);
-        mobGallerySprites = data || [];
+        mobGallerySprites = window.PosingStickman ? PosingStickman.withBuiltin(data || []) : (data || []); // built-in Posing Stickman, not a DB row
         console.log('Mobile gallery sprites loaded:', mobGallerySprites.length);
         renderMobGallery(mobGallerySprites);
         buildMobGalTagChips(mobGallerySprites);
@@ -8373,6 +8374,7 @@ function buildMobTagSectionCard(sec, isExit) {
 }
 
 async function mobGalFetchFull(id) {
+    if (window.PosingStickman && id === PosingStickman.BUILTIN_ID) return PosingStickman.fullData();
     const cached = sbGetFullCache(id);
     if (cached) return { id, image_data: cached.img, actions: cached.actions, default_scale: cached.default_scale || null };
     const { data } = await _supabase
