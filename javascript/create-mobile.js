@@ -1,3 +1,6 @@
+// Posing Stickman module: if the page didn't already load it, load it here so this file works on its own (the gallery sheet only needs it by the time it opens)
+if (!window.PosingStickman) { const _ps = document.createElement('script'); _ps.src = 'javascript/posing-stickman.js?v=1'; document.head.appendChild(_ps); }
+
 // create-mobile.js — all the mobile creator JS, yanked out of the html
 // good luck
         
