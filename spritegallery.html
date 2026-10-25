@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <link rel="stylesheet" href="theme.css">
     <script src="theme.js"></script>
+    <script src="javascript/posing-stickman.js?v=1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sprite Gallery | ComicCluck</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -1239,7 +1240,7 @@
 
         document.getElementById('prev-name').textContent = item.name;
         document.getElementById('prev-uploader').textContent = '@' + (item.creator || 'unknown');
-        document.getElementById('prev-tags').innerHTML = (item.tags||[]).map(t => `<span class="prev-tag">${t}</span>`).join('');
+        document.getElementById('prev-tags').innerHTML = (item.tags||[]).map(t => `<span class="prev-tag">${t}</span>`).join('') + (window.PosingStickman && PosingStickman.isRigPack(item) ? '<span class="prev-tag">✦ adjustable joints in the editor</span>' : '');
         document.getElementById('prev-actions').innerHTML = '<div style="color:var(--text-dim);font-size:11px;font-weight:700;grid-column:1/-1;padding:8px;">Loading…</div>';
 
         // Admin / owner controls
@@ -1539,6 +1540,37 @@
         if (error) return null;
         return _supabase.storage.from('sprites').getPublicUrl(path).data.publicUrl;
     }
+
+    // one-time seeding: renders every pose of the Posing Stickman and publishes it like any other gallery sprite.
+    // run once from the console while logged in as the sprite's creator:  seedPosingStickman()
+    async function seedPosingStickman() {
+        const PS = window.PosingStickman;
+        if (!PS) { showToast('posing-stickman.js is not loaded'); return; }
+        if (!myHandle) { showToast('Log in first'); return; }
+        const { data: existing } = await _supabase.from(GALLERY_TABLE).select('id').eq('name', 'Posing Stickman').limit(1);
+        if (existing && existing.length && !confirm('Posing Stickman already exists in the gallery. Add another copy?')) return;
+        const folder = 'gallery/posing_stickman_' + Date.now();
+        const urls = {};
+        for (const [id, label] of PS.ORDER) {
+            showToast('Uploading ' + label + '…');
+            const path = folder + (id === 'idle' ? '/main.png' : '/actions/' + id + '.png');
+            const url = await uploadToGalleryStorage(path, PS.render(PS.makeRig(id)));
+            if (!url) { showToast('Upload failed on ' + label); return; }
+            urls[id] = url;
+        }
+        const actions = {};
+        PS.ORDER.forEach(([id, label]) => { if (id !== 'idle') actions[label] = urls[id]; });
+        const { error } = await _supabase.from(GALLERY_TABLE).insert([{
+            name: 'Posing Stickman',
+            image_data: urls.idle,
+            actions,
+            creator: myHandle.replace('@', ''),
+            tags: ['stickman', 'poser', 'joints', 'misc'],
+            default_scale: 400
+        }]);
+        showToast(error ? error.message : 'Posing Stickman added to the gallery!');
+    }
+    window.seedPosingStickman = seedPosingStickman;
 
     async function submitGalleryUpload() {
         const name = document.getElementById('up-name').value.trim();
