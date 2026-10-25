@@ -1161,15 +1161,15 @@
 <!-- move bg -->
 <div id="move-bg-modal" style="display:none;">
     <div id="move-bg-modal-header">
-        <h3>✋ MOVE BACKGROUND</h3>
+        <h3>MOVE BACKGROUND</h3>
         <button onclick="closeMoveBgModal()" style="background:none;border:none;color:#666;font-size:22px;cursor:pointer;line-height:1;">✕</button>
     </div>
     <div id="move-bg-frame">
         <div id="move-bg-frame-inner"></div>
-        <div id="move-bg-hint">✋ Drag to pan background</div>
+        <div id="move-bg-hint">Drag to pan background</div>
     </div>
     <div style="font-size:11px;color:#555;font-weight:700;text-align:center;margin:8px 0 4px;letter-spacing:0.3px;">
-        Drag the preview above — or use the sliders below
+        Drag the preview above or use the sliders below
     </div>
     <div id="move-bg-controls">
         <div class="move-bg-row">
@@ -1195,11 +1195,11 @@
 <!-- save before exit -->
 <div id="exit-confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:99999;align-items:center;justify-content:center;">
     <div style="background:#111;border:1px solid #2a2a2a;border-radius:22px;padding:28px 22px;max-width:300px;width:88%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.8);">
-        <div style="font-size:36px;margin-bottom:12px;">💾</div>
+        <div style="font-size:36px;margin-bottom:12px;">SAVE</div>
         <div style="font-size:18px;font-weight:900;color:#f5f5f7;margin-bottom:8px;">Save before leaving?</div>
         <div style="font-size:12px;color:#666;font-weight:600;margin-bottom:24px;line-height:1.6;">You have unsaved changes.<br>Save your draft to keep your work.</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
-            <button onclick="exitSaveAndLeave()" style="width:100%;padding:15px;background:#ff7a00;color:#000;border:none;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;">💾 Save & Leave</button>
+            <button onclick="exitSaveAndLeave()" style="width:100%;padding:15px;background:#ff7a00;color:#000;border:none;border-radius:14px;font-weight:900;font-size:15px;cursor:pointer;font-family:inherit;">Save & Leave</button>
             <button onclick="exitLeaveWithoutSaving()" style="width:100%;padding:14px;background:#1a1a1a;color:#ff453a;border:1px solid #2a1a1a;border-radius:14px;font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;">Leave without saving</button>
             <button onclick="exitCancelLeave()" style="width:100%;padding:12px;background:transparent;color:#555;border:1px solid #222;border-radius:14px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;">Cancel</button>
         </div>
@@ -1243,7 +1243,7 @@
     <div style="background:#1a1a1c;border:1px solid #2c2c2e;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:28px 22px 36px;box-sizing:border-box;box-shadow:0 -8px 40px rgba(0,0,0,.7);">
         <div style="width:36px;height:4px;background:#333;border-radius:2px;margin:0 auto 20px;"></div>
         <div style="font-size:20px;font-weight:900;color:#f5f5f7;text-align:center;margin-bottom:6px;">Add New Frame?</div>
-        <div style="font-size:13px;color:#666;font-weight:600;text-align:center;margin-bottom:26px;line-height:1.5;">You're at the last frame.<br>Would you like to add a new one?</div>
+        <div style="font-size:13px;color:#666;font-weight:600;text-align:center;margin-bottom:26px;line-height:1.5;">This is the last frame.<br>Do you want to add a new one?</div>
         <div style="display:flex;flex-direction:column;gap:10px;">
             <!-- yes -->
             <button onclick="newFrameChoice('yes',false)"
