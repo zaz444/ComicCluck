@@ -1082,6 +1082,8 @@ function bubbleTailHTML(bStyle, edge, pos, bubBorder, bubBg) {
 }
 
 function attachResizeHandles(el, layer) {
+    el.querySelectorAll('.joint-handle').forEach(h => h.remove());
+    if (layer.rig && window.PosingStickman) PosingStickman.attachJointHandles(el, layer, { saveState, onCommit: posingStickmanCommit });
     el.querySelectorAll('.resize-handle').forEach(h => h.remove());
     el.querySelectorAll('.rotate-handle, .rotate-handle-stem').forEach(h => h.remove());
     const isDistort = !!layer.distorted;
@@ -1715,7 +1717,7 @@ function _renderNow() {
             e.stopPropagation();
             selectLayerLight(layer);
             // instant resize handles on tap, used to need a re-render or double-tap first
-            canvas.querySelectorAll('.resize-handle, .rotate-handle, .rotate-handle-stem, .tail-scroller-track, .tail-scroller-handle, .sqa-corner-toggle').forEach(h => h.remove());
+            canvas.querySelectorAll('.joint-handle, .resize-handle, .rotate-handle, .rotate-handle-stem, .tail-scroller-track, .tail-scroller-handle, .sqa-corner-toggle').forEach(h => h.remove());
             if (layer.type === 'img') attachResizeHandles(el, layer);
             else if (layer.type === 'panel') attachPanelResizeHandles(el, layer);
             if (layer.type === 'bubble' || layer.type === 'thinking') attachTailHandle(el, layer);
@@ -3447,7 +3449,7 @@ function renderFxPreviewComposited(wrap, box, layer) {
     clone.onclick = null;
 
     // strip interactive chrome, passive preview only
-    clone.querySelectorAll('.resize-handle, .rotate-handle, .rotate-handle-stem, .tail-scroller-track, .tail-scroller-handle, .sqa-corner-toggle').forEach(h => h.remove());
+    clone.querySelectorAll('.joint-handle, .resize-handle, .rotate-handle, .rotate-handle-stem, .tail-scroller-track, .tail-scroller-handle, .sqa-corner-toggle').forEach(h => h.remove());
     const onionClone = clone.querySelector('#onion-skin-canvas');
     if (onionClone) onionClone.style.display = 'none';
     const dragClone = clone.querySelector('#bg-drag-overlay');
@@ -4361,6 +4363,13 @@ function handleActionSelect(img, pack, isEditing) {
     if (isEditing && activeLayer) {
         saveState();
         const layer = activeLayer;
+        // Posing Stickman poses share one fixed box, so a swap just re-renders the rig, no trim/anchor math
+        if (layer.rig && window.PosingStickman) {
+            PosingStickman.applyPose(layer, PosingStickman.poseIdFor(img, pack));
+            closeActionModal();
+            posingStickmanCommit(layer);
+            return;
+        }
         const isChar = !!(layer.charHeight || layer.packData);
 
         const probeNew = new Image();
@@ -4491,8 +4500,31 @@ function cropSpriteToContent(img) {
     }
 }
 
+// Posing Stickman: a normal 'img' layer plus layer.rig (joint angles). src is re-rendered from the rig, so resize/rotate/flip/fx/layers/publish all work untouched and the reader only ever sees a PNG
+function addPosingStickman(src, pack) {
+    const PS = window.PosingStickman;
+    const cw = canvas.offsetWidth || 300, ch = canvas.offsetHeight || 300;
+    let targetH = pack.default_scale ? Math.round(pack.default_scale * ccRefScale(cw, ch)) : Math.round(ch * 0.6);
+    targetH = Math.max(20, Math.min(targetH, Math.round(ch * 0.9)));
+    const nl = { type: 'img', w: Math.round(targetH * PS.BOX.w / PS.BOX.h), h: targetH, x: 0, y: 0, rotation: 0, flipped: false, packData: pack, id: Date.now() };
+    if (nl.w > cw) { nl.w = cw; nl.h = Math.round(cw * PS.BOX.h / PS.BOX.w); }
+    PS.applyPose(nl, PS.poseIdFor(src, pack));
+    nl.insertW = nl.w; nl.insertH = nl.h;
+    nl.x = Math.round((cw - nl.w) / 2);
+    nl.y = Math.round(ch - nl.h);
+    frames[currentIdx].layers.push(nl);
+    activeLayer = nl;
+    render();
+}
+// after a pose swap or joint drag: re-bake blur fx from the new src if the layer has one, then redraw
+function posingStickmanCommit(layer) {
+    if (layer.blurType && layer.blurType !== 'none' && typeof computeLayerFx === 'function') computeLayerFx(layer).then(() => render());
+    else render();
+}
+
 function addSpriteToCanvas(src, pack) {
     saveState();
+    if (window.PosingStickman && PosingStickman.isRigPack(pack)) { addPosingStickman(src, pack); return; }
     const cw = canvas.offsetWidth || 300;
     const ch = canvas.offsetHeight || 300;
     const isCharacter = !!(pack && pack.id); // library/gallery sprites have an id — effects don't
