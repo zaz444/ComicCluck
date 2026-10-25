@@ -105,6 +105,8 @@ const ITEMS_PER_PAGE = 12;
 let storiesLoaded   = false;
 let shareComicId    = null;
 let shareComicTitle = null;
+let shareComicOwner = null;
+let shareUrl        = '';
 let toastTimer      = null;
 
 // frame count cache
@@ -978,7 +980,7 @@ async function openPopup(id) {
   shareBtn.className = 'popup-icon-btn';
   shareBtn.innerHTML = '↗';
   shareBtn.title     = 'Share';
-  shareBtn.onclick   = () => openShareSheet(c.id, c.title);
+  shareBtn.onclick   = () => openShareSheet(c.id, c.title, c.owner_handle);
   btnsRow2.appendChild(shareBtn);
 
   if (isMine) {
@@ -1833,65 +1835,55 @@ async function loadStories() {
   renderStories(stories || []);
 }
 
-// share
-function openShareSheet(comicId, comicTitle) {
+// share (same sheet as the reader: link, Discord, X, WhatsApp, More…)
+function openShareSheet(comicId, comicTitle, ownerHandle) {
   shareComicId    = comicId;
-  shareComicTitle = comicTitle;
-  document.getElementById('share-comic-title').innerText = comicTitle;
-  document.getElementById('shareOverlay').classList.add('open');
-  loadShareFriends();
+  shareComicTitle = comicTitle || 'this comic';
+  shareComicOwner = ownerHandle || null;
+  shareUrl = new URL('reader.html?id=' + encodeURIComponent(comicId), location.href).href;
+
+  const title  = shareComicTitle;
+  const author = shareComicOwner ? ` by @${shareComicOwner}` : '';
+  document.getElementById('sh-title').innerText     = `Share "${title}"`;
+  document.getElementById('sh-sub').innerText       = 'Anyone with this link can read it';
+  document.getElementById('sh-link-text').innerText = shareUrl;
+  const copyBtn = document.getElementById('copy-btn');
+  copyBtn.textContent = 'Copy';
+  copyBtn.classList.remove('copied');
+
+  const enc = encodeURIComponent(shareUrl);
+  const txt = encodeURIComponent(`"${title}"${author} — a comic on ComicCore 🎨`);
+  document.getElementById('discord-btn').onclick = e => { e.preventDefault(); copyLink(); showToast('Link copied! Paste it into Discord 🎮'); };
+  document.getElementById('twitter-btn').href    = `https://twitter.com/intent/tweet?text=${txt}&url=${enc}`;
+  document.getElementById('whatsapp-btn').href   = `https://wa.me/?text=${txt}%20${enc}`;
+
+  document.getElementById('share-sheet').classList.add('open');
 }
 
 function closeShareSheet() {
-  document.getElementById('shareOverlay').classList.remove('open');
-  shareComicId = null; shareComicTitle = null;
+  document.getElementById('share-sheet').classList.remove('open');
 }
 
-async function loadShareFriends() {
-  const list = document.getElementById('share-friends-list');
-  list.innerHTML = '<div style="padding:20px;text-align:center;color:#555;">Loading…</div>';
-  if (!myProfile.handle || myProfile.handle === 'guest') {
-    list.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">Log in to share.</div>'; return;
+async function copyLink() {
+  try { await navigator.clipboard.writeText(shareUrl); }
+  catch {
+    const ta = document.createElement('textarea');
+    ta.value = shareUrl; ta.style.cssText = 'position:fixed;opacity:0;';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
   }
-  const { data: conns } = await _sb
-    .from('connections').select('*')
-    .or(`sender_handle.eq.${myProfile.handle},receiver_handle.eq.${myProfile.handle}`)
-    .eq('status','accepted');
-  if (!conns?.length) {
-    list.innerHTML = '<div style="padding:20px;text-align:center;color:#666;">No connections yet.</div>'; return;
-  }
-  list.innerHTML = '';
-  for (const conn of conns) {
-    const friendHandle = conn.sender_handle === myProfile.handle ? conn.receiver_handle : conn.sender_handle;
-    const p = await getCachedProfile(friendHandle);
-    const row = document.createElement('div');
-    row.className = 'friend-row';
-    row.id = 'friend-row-' + friendHandle;
-    const friendAvatar = getPublicAvatarUrl(p?.pic) || DEFAULT_AVATAR;
-    row.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;">
-        <img src="${esc(friendAvatar)}" class="friend-pic" onerror="this.onerror=null;this.src='${DEFAULT_AVATAR}'">
-        <div>
-          <div class="friend-name">${esc(p?.name||friendHandle)}</div>
-          <div class="friend-handle">@${esc(friendHandle)}</div>
-        </div>
-      </div>
-      <button class="send-btn" onclick="sendShare('${esc(friendHandle)}')">Send</button>`;
-    list.appendChild(row);
-  }
+  const btn = document.getElementById('copy-btn');
+  btn.textContent = '✓ Copied'; btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2500);
+  showToast('Link copied to clipboard!');
 }
 
-async function sendShare(toHandle) {
-  const btn = document.querySelector(`#friend-row-${toHandle} .send-btn`);
-  if (btn) { btn.disabled = true; btn.innerText = '…'; }
-  const readerUrl = `reader.html?id=${encodeURIComponent(shareComicId)}`;
-  await _sb.from('messages').insert([{
-    sender_handle: myProfile.handle,
-    receiver_handle: toHandle,
-    content: `[SHARE]: ${shareComicTitle}! (Link: ${readerUrl})`
-  }]);
-  if (btn) { btn.innerText = 'Sent ✓'; btn.style.background = '#32d74b'; btn.style.color = '#000'; }
-  showToast('Shared!');
+async function nativeShare() {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: shareComicTitle || 'ComicCore', text: `Check out "${shareComicTitle || 'this comic'}" on ComicCore!`, url: shareUrl });
+    } catch(e) { if (e.name !== 'AbortError') copyLink(); }
+  } else { copyLink(); }
 }
 
 // trending/recent reaction tabs

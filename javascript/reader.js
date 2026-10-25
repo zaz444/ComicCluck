@@ -1036,7 +1036,6 @@ function openStoryShare() {
   document.getElementById('discord-btn').onclick = e => { e.preventDefault(); copyLink(); showToast('Link copied! Paste into Discord 🎮'); };
   document.getElementById('twitter-btn').href  = 'https://twitter.com/intent/tweet?text=' + txt + '&url=' + enc;
   document.getElementById('whatsapp-btn').href = 'https://wa.me/?text=' + txt + '%20' + enc;
-  drawQR(shareUrl);
   document.getElementById('share-sheet').classList.add('open');
 }
 
@@ -2371,7 +2370,6 @@ function openShare() {
   document.getElementById('twitter-btn').href   = `https://twitter.com/intent/tweet?text=${txt}&url=${enc}`;
   document.getElementById('whatsapp-btn').href  = `https://wa.me/?text=${txt}%20${enc}`;
 
-  drawQR(shareUrl);
   document.getElementById('share-sheet').classList.add('open');
   clearTimeout(hideTimer);
 }
@@ -2401,39 +2399,6 @@ async function nativeShare() {
       await navigator.share({ title: comic?.title || 'ComicCore', text: `Check out "${comic?.title || 'this comic'}" on ComicCore!`, url: shareUrl });
     } catch(e) { if (e.name !== 'AbortError') copyLink(); }
   } else { copyLink(); }
-}
-
-// -- qr code --
-function drawQR(url) {
-  const canvas = document.getElementById('qr-canvas');
-  if (!canvas) return;
-  if (typeof QRCode !== 'undefined') { renderQR(canvas, url); return; }
-  const s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js';
-  s.onload = () => renderQR(canvas, url);
-  s.onerror = () => {
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 80, 80);
-    ctx.fillStyle = '#333'; ctx.font = '8px Inter'; ctx.textAlign = 'center';
-    ctx.fillText('QR unavailable', 40, 44);
-  };
-  document.head.appendChild(s);
-}
-
-function renderQR(canvas, url) {
-  try {
-    const qr = qrcode(0, 'M');
-    qr.addData(url); qr.make();
-    const size = 80, ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, size, size);
-    const mc = qr.getModuleCount(), cell = size / mc;
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = '#000000';
-    for (let row = 0; row < mc; row++)
-      for (let col = 0; col < mc; col++)
-        if (qr.isDark(row, col))
-          ctx.fillRect(Math.floor(col * cell), Math.floor(row * cell), Math.ceil(cell), Math.ceil(cell));
-  } catch(e) { console.warn('QR render error:', e); }
 }
 
 // -- toast --
