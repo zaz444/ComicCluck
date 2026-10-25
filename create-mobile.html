@@ -215,12 +215,12 @@
     <div class="modal-content">
         <h2 style="margin-top:0;color:var(--teal);font-size:17px;">Export Comic</h2>
         <div class="export-tab-row">
-            <button class="export-tab active" onclick="switchExportTab('frames')">🖼 Frames</button>
-            <button class="export-tab" onclick="switchExportTab('strip')">📜 Strip</button>
-            <button class="export-tab" onclick="switchExportTab('gif')">🎞 GIF</button>
+            <button class="export-tab active" onclick="switchExportTab('frames')">Frames</button>
+            <button class="export-tab" onclick="switchExportTab('strip')">Strip</button>
+            <button class="export-tab" onclick="switchExportTab('gif')">GIF</button>
         </div>
         <div id="export-frames" class="export-section active">
-            <div style="font-size:11px;color:#666;margin-bottom:12px;font-weight:700;">Tap a frame to save. On iOS the share sheet will open — choose Save to Photos or Files.</div>
+            <div style="font-size:11px;color:#666;margin-bottom:12px;font-weight:700;">Tap a frame to save. On iOS the share sheet will open, but choose Save to Photos or Files.</div>
             <div id="export-frames-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;max-height:55vh;overflow-y:auto;"></div>
         </div>
         <div id="export-strip" class="export-section">
@@ -240,7 +240,7 @@
             <button onclick="exportStrip()" style="width:100%;padding:12px;background:var(--teal);color:#000;border:none;border-radius:12px;font-weight:900;cursor:pointer;">GENERATE STRIP</button>
         </div>
         <div id="export-gif" class="export-section">
-            <div style="font-size:11px;color:#888;margin-bottom:10px;font-weight:700;">GIF works best on desktop. On mobile, tap "Save GIF" to open the share sheet.</div>
+            <div style="font-size:11px;color:#888;margin-bottom:10px;font-weight:700;">GIF works the best on desktop. On mobile, tap "Save GIF" to open the share sheet.</div>
             <div class="export-row">
                 <span>Frame Speed</span>
                 <div style="display:flex;align-items:center;gap:8px;">
@@ -260,7 +260,7 @@
             <div id="gif-status" style="font-size:11px;color:var(--teal);margin-bottom:10px;font-weight:800;"></div>
             <div id="gif-result-wrap" style="display:none;text-align:center;margin-bottom:10px;">
                 <img id="gif-result-img" style="max-width:100%;border-radius:8px;border:1px solid #333;">
-                <div style="font-size:10px;color:#555;margin-top:6px;">Tap "Save GIF" below, or long-press the preview as a backup.</div>
+                <div style="font-size:10px;color:#555;margin-top:6px;">Tap "Save GIF" below, or hold down the preview as a backup.</div>
                 <button id="gif-download-link" onclick="if(this.dataset.url)mobileDownload(this.dataset.url,'comic.gif')" style="display:inline-block;margin-top:8px;padding:10px 20px;background:var(--teal);color:#000;border:none;border-radius:10px;font-weight:900;font-size:12px;cursor:pointer;font-family:inherit;">Save GIF</button>
             </div>
             <button onclick="exportGIF()" id="gif-generate-btn" style="width:100%;padding:12px;background:var(--teal);color:#000;border:none;border-radius:12px;font-weight:900;cursor:pointer;">GENERATE GIF</button>
@@ -379,7 +379,7 @@
         </div>
         <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;">
             <button onclick="openSheet('gallery')" style="width:100%;padding:12px;background:rgba(168,85,247,0.08);border:1.5px solid rgba(168,85,247,0.3);border-radius:10px;color:#a855f7;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
-                🖼 Open Sprite Gallery
+                Open Sprite Gallery
             </button>
             <div style="text-align:center;font-size:10px;color:#444;font-weight:700;">Create &amp; upload sprites in the Sprite Gallery</div>
         </div>
@@ -389,7 +389,7 @@
 <!-- gallery -->
 <div id="sheet-gallery" class="bottom-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title" style="color:#a855f7;">🖼 Sprite Gallery <button class="sheet-close" onclick="closeSheet('gallery')">✕</button></div>
+    <div class="sheet-title" style="color:#a855f7;">Sprite Gallery <button class="sheet-close" onclick="closeSheet('gallery')">✕</button></div>
     <div class="sheet-body">
         <input class="pub-input" id="mob-gal-search" placeholder="Search gallery..." oninput="filterMobGallery()" style="margin-bottom:6px;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
