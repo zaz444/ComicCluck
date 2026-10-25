@@ -9,7 +9,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/regular/straight.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap">
-<link rel="stylesheet" href="css/discover.css">
+<link rel="stylesheet" href="css/discover.css?v=2">
 
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ff7a00">
@@ -231,15 +231,31 @@
   </div>
 </div>
 
-<!-- ── Share overlay ── -->
+<!-- ── Share Sheet (same as reader) ── -->
 
-<div class="share-overlay" id="shareOverlay" onclick="if(event.target===this)closeShareSheet()">
-  <div class="share-sheet-inner" onclick="event.stopPropagation()">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
-      <span style="font-weight:900; font-size:15px;">Share: <span id="share-comic-title" style="color:var(--accent);"></span></span>
-      <button onclick="closeShareSheet()" style="background:none;border:none;color:#f5f5f7;font-size:22px;cursor:pointer;">✕</button>
+<div class="share-sheet" id="share-sheet" onclick="if(event.target===this)closeShareSheet()">
+  <div class="share-inner">
+    <div class="share-title" id="sh-title">Share Comic</div>
+    <div class="share-sub" id="sh-sub">Anyone with this link can read it</div>
+    <div class="link-row">
+      <span class="link-text" id="sh-link-text">loading…</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyLink()">Copy</button>
     </div>
-    <div id="share-friends-list" style="overflow-y:auto; flex:1;"></div>
+    <div class="platforms">
+      <a class="plat-btn" id="discord-btn" href="#">
+        <span class="pi">🎮</span><span>Discord</span>
+      </a>
+      <a class="plat-btn" id="twitter-btn" href="#" target="_blank">
+        <span class="pi">𝕏</span><span>X / Twitter</span>
+      </a>
+      <a class="plat-btn" id="whatsapp-btn" href="#" target="_blank">
+        <span class="pi">💬</span><span>WhatsApp</span>
+      </a>
+      <button class="plat-btn" onclick="nativeShare()">
+        <span class="pi">⬆</span><span>More…</span>
+      </button>
+    </div>
+    <button class="sheet-close" onclick="closeShareSheet()">Close</button>
   </div>
 </div>
 
@@ -249,7 +265,7 @@
 
 <!-- Bottom nav removed — use back button -->
 
-<script src="javascript/discover.js?v=6"></script>
+<script src="javascript/discover.js?v=7"></script>
 
 </body>
 </html>
