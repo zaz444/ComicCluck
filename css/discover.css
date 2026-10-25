@@ -716,23 +716,59 @@ border: 1.5px solid transparent; cursor: pointer; transition: .15s; padding: 0;
 .reaction-img-btn img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .reaction-tray-empty { color: #444; font-size: 11px; font-weight: 700; text-align: center; padding: 16px; grid-column: 1/-1; }
 
-/* ── Share sheet ── */
-.share-overlay {
-position: fixed; inset: 0; background: rgba(0,0,0,.88); z-index: 2000;
-display: none; flex-direction: column; align-items: center; justify-content: flex-end;
+/* ── Share sheet (matches reader) ── */
+.share-sheet{
+position:fixed;inset:0;z-index:2000;
+display:none;align-items:flex-end;justify-content:center;
+background:rgba(0,0,0,.7);backdrop-filter:blur(8px);
+padding:0 0 env(safe-area-inset-bottom);
 }
-.share-overlay.open { display: flex; }
-.share-sheet-inner {
-background: #1c1c1e; width: 100%; max-width: 500px;
-border-radius: 20px 20px 0 0; padding: 20px;
-max-height: 70vh; display: flex; flex-direction: column; border: 1px solid #2c2c2e;
-animation: slideUp .3s cubic-bezier(.4,0,.2,1);
+.share-sheet.open{display:flex;}
+.share-inner{
+background:#1c1c1e;border:1px solid #2c2c2e;
+border-radius:20px 20px 0 0;padding:24px 20px 28px;
+width:100%;max-width:480px;
+animation:slideUp .3s cubic-bezier(.4,0,.2,1);
 }
-.friend-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #2c2c2e; }
-.friend-pic { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: #222; }
-.friend-name { font-size: 13px; font-weight: 700; }
-.friend-handle { font-size: 11px; color: #555; }
-.send-btn { background: var(--accent); border: none; color: #000; padding: 7px 16px; border-radius: 20px; font-weight: 900; cursor: pointer; font-size: 12px; }
+.share-title{font-size:16px;font-weight:900;margin:0 0 4px;letter-spacing:.3px;}
+.share-sub{font-size:12px;color:rgba(255,255,255,.4);margin:0 0 18px;}
+
+.link-row{
+display:flex;gap:8px;align-items:center;
+background:#111;border:1px solid #2c2c2e;border-radius:12px;
+padding:10px 12px;margin-bottom:18px;
+}
+.link-text{
+flex:1;font-size:12px;color:rgba(255,255,255,.5);
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+font-family:'Courier New',monospace;
+}
+.copy-btn{
+background:#ff7a00;color:#000;border:none;
+border-radius:8px;padding:7px 14px;font-size:12px;font-weight:900;
+cursor:pointer;white-space:nowrap;transition:.15s;flex-shrink:0;
+}
+.copy-btn:hover{filter:brightness(1.1);}
+.copy-btn.copied{background:#32d74b;}
+
+.platforms{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:2px;}
+.plat-btn{
+flex:1;min-width:calc(50% - 5px);
+display:flex;align-items:center;gap:8px;
+background:#2c2c2e;border:1px solid #3a3a3c;color:white;
+padding:12px 14px;border-radius:12px;font-size:13px;font-weight:700;
+cursor:pointer;transition:.15s;text-decoration:none;font-family:inherit;
+}
+.plat-btn:hover{background:#3a3a3c;transform:translateY(-1px);}
+.plat-btn .pi{font-size:20px;flex-shrink:0;}
+
+.sheet-close{
+width:100%;margin-top:16px;padding:13px;
+background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+color:white;border-radius:12px;font-size:14px;font-weight:700;
+cursor:pointer;transition:.15s;font-family:inherit;
+}
+.sheet-close:hover{background:rgba(255,255,255,.14);}
 
 /* ── Stories ── */
 .story-card { display: flex; gap: 14px; padding: 14px 16px; border-bottom: 1px solid #2c2c2e; cursor: pointer; transition: .15s; }
