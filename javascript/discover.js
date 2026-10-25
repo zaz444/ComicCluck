@@ -1843,19 +1843,12 @@ function openShareSheet(comicId, comicTitle, ownerHandle) {
   shareUrl = new URL('reader.html?id=' + encodeURIComponent(comicId), location.href).href;
 
   const title  = shareComicTitle;
-  const author = shareComicOwner ? ` by @${shareComicOwner}` : '';
   document.getElementById('sh-title').innerText     = `Share "${title}"`;
   document.getElementById('sh-sub').innerText       = 'Anyone with this link can read it';
   document.getElementById('sh-link-text').innerText = shareUrl;
   const copyBtn = document.getElementById('copy-btn');
   copyBtn.textContent = 'Copy';
   copyBtn.classList.remove('copied');
-
-  const enc = encodeURIComponent(shareUrl);
-  const txt = encodeURIComponent(`"${title}"${author} — a comic on ComicCore 🎨`);
-  document.getElementById('discord-btn').onclick = e => { e.preventDefault(); copyLink(); showToast('Link copied! Paste it into Discord 🎮'); };
-  document.getElementById('twitter-btn').href    = `https://twitter.com/intent/tweet?text=${txt}&url=${enc}`;
-  document.getElementById('whatsapp-btn').href   = `https://wa.me/?text=${txt}%20${enc}`;
 
   document.getElementById('share-sheet').classList.add('open');
 }
@@ -1876,14 +1869,6 @@ async function copyLink() {
   btn.textContent = '✓ Copied'; btn.classList.add('copied');
   setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2500);
   showToast('Link copied to clipboard!');
-}
-
-async function nativeShare() {
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: shareComicTitle || 'ComicCore', text: `Check out "${shareComicTitle || 'this comic'}" on ComicCore!`, url: shareUrl });
-    } catch(e) { if (e.name !== 'AbortError') copyLink(); }
-  } else { copyLink(); }
 }
 
 // trending/recent reaction tabs

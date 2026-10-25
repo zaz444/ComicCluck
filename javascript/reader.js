@@ -1031,11 +1031,6 @@ function openStoryShare() {
   document.getElementById('sh-link-text').innerText = shareUrl;
   document.getElementById('copy-btn').textContent = 'Copy';
   document.getElementById('copy-btn').classList.remove('copied');
-  const enc = encodeURIComponent(shareUrl);
-  const txt = encodeURIComponent('"' + title + '" — a story on ComicCore ✍️');
-  document.getElementById('discord-btn').onclick = e => { e.preventDefault(); copyLink(); showToast('Link copied! Paste into Discord 🎮'); };
-  document.getElementById('twitter-btn').href  = 'https://twitter.com/intent/tweet?text=' + txt + '&url=' + enc;
-  document.getElementById('whatsapp-btn').href = 'https://wa.me/?text=' + txt + '%20' + enc;
   document.getElementById('share-sheet').classList.add('open');
 }
 
@@ -2356,19 +2351,12 @@ function goBack() {
 function openShare() {
   if (!shareUrl) buildShareUrl();
   const title   = comic?.title || 'this comic';
-  const author  = comicOwners(comic).length ? ` by ${comicOwners(comic).map(h => '@' + h).join(' + ')}` : '';
   const framesN = frames.length;
   document.getElementById('sh-title').innerText = `Share "${title}"`;
   document.getElementById('sh-sub').innerText   = `${framesN} frame${framesN !== 1 ? 's' : ''} · Anyone with this link can read it`;
   document.getElementById('sh-link-text').innerText = shareUrl;
   document.getElementById('copy-btn').textContent = 'Copy';
   document.getElementById('copy-btn').classList.remove('copied');
-
-  const enc     = encodeURIComponent(shareUrl);
-  const txt     = encodeURIComponent(`"${title}"${author} — a comic on ComicCore 🎨`);
-  document.getElementById('discord-btn').onclick = e => { e.preventDefault(); copyLink(); showToast('Link copied! Paste into Discord 🎮'); };
-  document.getElementById('twitter-btn').href   = `https://twitter.com/intent/tweet?text=${txt}&url=${enc}`;
-  document.getElementById('whatsapp-btn').href  = `https://wa.me/?text=${txt}%20${enc}`;
 
   document.getElementById('share-sheet').classList.add('open');
   clearTimeout(hideTimer);
@@ -2391,14 +2379,6 @@ async function copyLink() {
   btn.textContent = '✓ Copied'; btn.classList.add('copied');
   setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2500);
   showToast('Link copied to clipboard!');
-}
-
-async function nativeShare() {
-  if (navigator.share) {
-    try {
-      await navigator.share({ title: comic?.title || 'ComicCore', text: `Check out "${comic?.title || 'this comic'}" on ComicCore!`, url: shareUrl });
-    } catch(e) { if (e.name !== 'AbortError') copyLink(); }
-  } else { copyLink(); }
 }
 
 // -- toast --
