@@ -1,4 +1,4 @@
-/* ComicCluck hand-drawn font. Accents and anything not drawn fall back to Inter. */
+/* comiccluck font. */
 @font-face {
   font-family: 'ComicCluck';
   src: url('fonts/ComicCluck-Regular.woff2') format('woff2'),
