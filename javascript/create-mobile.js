@@ -1,4 +1,8 @@
-if (!window.PosingStickman) { const _ps = document.createElement('script'); _ps.src = 'javascript/posing-stickman.js?v=1'; 
+// Posing Stickman module: if the page didn't already load it, load it here so this file works on its own (the gallery sheet only needs it by the time it opens)
+if (!window.PosingStickman) { const _ps = document.createElement('script'); _ps.src = 'javascript/posing-stickman.js?v=1'; document.head.appendChild(_ps); }
+
+// create-mobile.js — all the mobile creator JS, yanked out of the html
+// good luck
         
         (function () {
             function setAppHeight() {
@@ -394,7 +398,7 @@ function renderFrameAutoplay() {
     const on = !!f.autoplay;
     const hasAudio = !!f.audio_url;
     document.getElementById('ap-frame-num').innerText = currentIdx + 1;
-    tog.classList.toggle('on', on);
+    tog.checked = on;
     document.getElementById('ap-dur-box').classList.toggle('off', !on);
     document.getElementById('ap-dur-input').value = f.autoplay_sec != null ? f.autoplay_sec : AUTOPLAY_DEFAULT_SEC;
     document.getElementById('ap-opts').style.display = on ? 'block' : 'none';
