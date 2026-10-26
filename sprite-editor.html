@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ComicCore — Sprite Editor</title>
+<title>ComicCore — Sprite Studio</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/regular/straight.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff7a00">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -17,7 +18,7 @@ body {
   height: 100dvh;
   display: flex; align-items: center; justify-content: center;
 }
-/* stop sign */
+/* Fills the screen, but never scales past the image's own 2048x2048 size */
 #construction {
   display: block;
   width: auto; height: auto;
@@ -25,9 +26,22 @@ body {
   object-fit: contain;
   -webkit-user-drag: none; user-select: none;
 }
+
+/* Back button: same size, shape, icon and hover as Discover's, recolored for the light background */
+.icon-btn {
+  position: fixed; z-index: 10;
+  top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px;
+  width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+  background: rgba(0,0,0,.07); border: 1px solid rgba(0,0,0,.12); color: #0a0a0c;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 15px; transition: all 0.18s; text-decoration: none; padding: 0;
+}
+.icon-btn:hover { background: rgba(0,0,0,.12); color: #ff7a00; transform: translateY(-1px); }
+@media (min-width: 900px) { .icon-btn { left: 32px; } }
 </style>
 </head>
 <body>
+<button class="icon-btn" onclick="location.href='/index.html'" title="Back"><i class="fi fi-rs-arrow-left"></i></button>
 <img id="construction" alt="STOP! This page is currently under construction" src="https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/comiccore-assets/buttons/Untitled173_20261025203151.png">
 </body>
 </html>
