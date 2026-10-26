@@ -602,8 +602,18 @@
         width: 32px; height: 32px; border-radius: 6px; background: #333;
         object-fit: contain; flex-shrink: 0;
     }
+    .mob-layer-item .l-ico, .mob-layer-bg .l-ico { width: 34px; height: 26px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; color: #fff; }
+    .mob-layer-bg {
+        display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-top: 2px;
+        background: #1a1a1b; border: 1.5px dashed #2c2c2e; border-radius: 10px; cursor: pointer; transition: 0.15s;
+    }
+    .mob-layer-bg:active { border-color: var(--accent); }
+    .mob-layer-bg .l-info { flex: 1; min-width: 0; }
+    .mob-layer-bg .l-name { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mob-layer-bg .l-type { font-size: 10px; color: #666; margin-top: 1px; }
+    .mob-layer-bg .l-chev { color: #555; font-size: 18px; padding: 0 6px; }
     .mob-layer-item .l-info { flex: 1; min-width: 0; }
-    .mob-layer-item .l-name { font-size: 12px; font-weight: 700; color: var(--text); }
+    .mob-layer-item .l-name { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mob-layer-item .l-type { font-size: 10px; color: #666; margin-top: 1px; }
     .mob-layer-item .l-del { background: none; border: none; color: #444; cursor: pointer; font-size: 16px; padding: 4px; }
     .mob-layer-item .l-del:active { color: var(--danger); }
