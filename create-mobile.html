@@ -590,13 +590,13 @@
 <!-- audio sheet -->
 <div id="sheet-audio" class="bottom-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">🔊 Frame Audio <span id="mob-audio-frame-label" style="font-size:12px;color:#888;font-weight:700;">Frame 1</span><button class="sheet-close" onclick="closeSheet('audio')">✕</button></div>
+    <div class="sheet-title">Frame Audio <span id="mob-audio-frame-label" style="font-size:12px;color:#888;font-weight:700;">Frame 1</span><button class="sheet-close" onclick="closeSheet('audio')">✕</button></div>
     <div class="sheet-body">
         <div style="font-size:10px;color:#555;font-weight:700;text-align:center;padding-bottom:8px;">3–45 seconds of audio plays on this frame</div>
 
         <!-- current clip -->
         <div id="mob-audio-current" class="mob-audio-current" style="display:none;">
-            <span class="ac-ico">🔊</span>
+            <span class="ac-ico"><i class="fi fi-rs-volume"></i></span>
             <div class="ac-info">
                 <div class="ac-name" id="mob-audio-current-name">Track</div>
                 <div class="ac-range" id="mob-audio-current-range">0:00–0:00</div>
@@ -619,8 +619,8 @@
 
         <!-- library/upload tabs -->
         <div style="display:flex;gap:4px;margin:14px 0 10px;">
-            <button class="mob-audio-main-tab active" id="mob-audio-tab-library" onclick="setMobAudioMainTab('library')">🎵 Library</button>
-            <button class="mob-audio-main-tab" id="mob-audio-tab-upload" onclick="setMobAudioMainTab('upload')">⬆️ Upload</button>
+            <button class="mob-audio-main-tab active" id="mob-audio-tab-library" onclick="setMobAudioMainTab('library')"><i class="fi fi-rs-music au-i"></i>Library</button>
+            <button class="mob-audio-main-tab" id="mob-audio-tab-upload" onclick="setMobAudioMainTab('upload')"><i class="fi fi-rs-upload au-i"></i>Upload</button>
         </div>
 
         <!-- library pane -->
@@ -634,7 +634,7 @@
         <!-- upload pane -->
         <div id="mob-audio-pane-upload" style="display:none;">
             <div class="mob-audio-upload-box" id="mob-audio-upload-box" onclick="document.getElementById('audio-file-input').click()">
-                <span class="au-ico">📁</span>
+                <span class="au-ico"><i class="fi fi-rs-folder"></i></span>
                 <div style="font-size:12px;font-weight:800;color:#aaa;">Tap to choose an audio file</div>
                 <div style="font-size:10px;color:#555;">mp3, m4a, wav — trim to 3–45s</div>
             </div>
