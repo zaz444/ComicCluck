@@ -573,6 +573,12 @@
                 <div id="ap-sound-hint" style="font-size:10px;color:#666;font-weight:700;margin:4px 0 0 26px;"></div>
                 <button type="button" class="frames-top-btn" onclick="applyAutoplayToAll()" style="width:100%;margin-top:10px;padding:9px 0;font-size:11px;">Apply to all frames</button>
             </div>
+            <!-- preview: plays autoplay the way the reader will (timing + sound) in the eye view -->
+            <div id="ap-preview-row" style="display:none;gap:8px;margin-top:10px;">
+                <button type="button" class="frames-top-btn accent-btn" onclick="apPvStartFromPanel(false)" style="padding:9px 0;font-size:11px;">▶ Preview from this frame</button>
+                <button type="button" class="frames-top-btn" onclick="apPvStartFromPanel(true)" style="padding:9px 0;font-size:11px;">⏮ From start</button>
+            </div>
+            <div style="font-size:10px;color:#666;font-weight:700;margin-top:6px;">Preview plays it like readers will see it. The eye icon runs it too.</div>
         </div>
         <div style="display:flex;gap:8px;margin-top:12px;">
             <button class="frames-top-btn" onclick="copyCurrentFrame()" title="Copy Frame" style="flex:0 0 auto;width:44px;padding:11px 0;font-size:16px;"><i class="fi fi-rs-copy"></i></button>
@@ -1009,6 +1015,14 @@
 <!-- show ui bar -->
 <div id="hidden-ui-bar" style="display:none; position:fixed; top:0; left:0; right:0; height:38px; background:rgba(0,0,0,0.55); z-index:9999; align-items:center; justify-content:center;">
     <button onclick="toggleHideUI()" style="background:var(--accent);color:#000;border:none;padding:5px 24px;border-radius:20px;font-weight:900;font-size:12px;font-family:inherit;cursor:pointer;">TAP TO SHOW UI</button>
+</div>
+
+<!-- autoplay preview controls, only visible in the eye view on an autoplay frame -->
+<div id="ap-pv-pill">
+    <button type="button" id="ap-pv-toggle" onclick="apPvTogglePause()" title="Pause / resume">⏸</button>
+    <span id="ap-pv-label">Autoplay preview</span>
+    <button type="button" id="ap-pv-exit" onclick="apPvExit()" title="Back to editing">✕</button>
+    <div id="ap-pv-bar-track"><div id="ap-pv-bar"></div></div>
 </div>
 
 <!-- canvas -->
