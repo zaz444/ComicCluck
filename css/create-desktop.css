@@ -1,0 +1,38 @@
+/* create-desktop.css: desktop layout on top of create-mobile.css. Same markup + JS, different shell.
+   left rail = old bottom bar, right dock = old bottom sheets, canvas in the middle. */
+:root { --rail-w: 78px; --dock-w: 380px; --top-h: 52px; }
+
+body { display: grid; grid-template-columns: var(--rail-w) 1fr var(--dock-w); grid-template-rows: var(--top-h) 1fr;
+       height: 100vh; user-select: none; }
+input, textarea { user-select: text; }
+
+#top-bar { grid-column: 1 / -1; grid-row: 1; overflow: visible; padding: 0 14px; gap: 8px; touch-action: auto; }
+#bottom-bar { grid-column: 1; grid-row: 2; height: auto; width: var(--rail-w); flex-direction: column; justify-content: flex-start;
+              gap: 4px; padding: 10px 4px; border-top: none; border-right: 1px solid var(--border); overflow-y: auto; touch-action: auto; }
+#viewport { grid-column: 2; grid-row: 2; min-width: 0; min-height: 0; }
+#dock-hint { grid-column: 3; grid-row: 2; background: var(--sheet-bg); border-left: 1px solid var(--border); padding: 22px 20px; overflow-y: auto; }
+#dock-hint h3 { margin: 0 0 6px; color: var(--accent); font-size: 15px; }
+#dock-hint p { margin: 0 0 16px; color: #888; font-size: 12px; }
+#dock-hint ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; font-size: 12px; color: #aaa; }
+#dock-hint li b { color: var(--text); margin-right: 6px; }
+
+/* sheets dock on the right instead of sliding up; no dimming so the canvas stays editable */
+.sheet-overlay, #transform-sheet-backdrop, .sheet-handle { display: none !important; }
+.bottom-sheet, #transform-sheet { top: var(--top-h); bottom: 0 !important; left: auto; right: 0; width: var(--dock-w);
+    max-height: none !important; border-radius: 0; border-top: none; border-left: 1px solid var(--border);
+    transform: translateX(100%); transition: transform 0.22s cubic-bezier(.4,0,.2,1); padding-bottom: 0; }
+.bottom-sheet.open, #transform-sheet.open { transform: none; }
+#transform-sheet { padding: 0 16px 24px; z-index: 520; }
+.modal-content { max-width: 520px; }
+
+/* canvas furniture */
+#frame-swipe-zone { display: none; }
+#canvas-frame-bar-wrap { bottom: 16px; }
+#zoom-controls { right: calc(var(--dock-w) + 12px); top: calc(var(--top-h) + 10px); }
+
+/* mouse affordances */
+.tb-btn, .bot-btn, .tb-icon-btn, .cfb-btn, .add-btn, .mob-sprite-card, .mob-bg-card, .mob-layer-item, .zoom-ctrl-btn { cursor: pointer; }
+.tb-btn:hover, .tb-icon-btn:hover, .cfb-btn:hover, .zoom-ctrl-btn:hover { background: rgba(255,255,255,0.14); }
+.bot-btn:hover { background: rgba(255,255,255,0.07); }
+.add-btn:hover, .mob-sprite-card:hover, .mob-bg-card:hover, .mob-layer-item:hover { border-color: var(--accent); }
+body.space-pan #viewport, body.space-pan #viewport * { cursor: grab !important; }
