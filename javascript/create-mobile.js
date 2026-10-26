@@ -268,6 +268,7 @@ function activateFrame(i) {
     const r = getFrameRatio(f);
     if (r.w !== canvasRatio.w || r.h !== canvasRatio.h) setRatio(r.w, r.h);
     else render();
+    if (typeof _apPvOnFrame === 'function') _apPvOnFrame(); // autoplay preview follows every frame change, however it happened
 }
 
 // per-frame ratio change
@@ -409,6 +410,9 @@ function renderFrameAutoplay() {
     document.getElementById('ap-sound-hint').innerText = !hasAudio
         ? 'Add audio first'
         : (chk.checked ? 'Moves on when the sound ends. The time above is the backup if sound can\'t play.' : '');
+    // preview buttons only make sense once some frame has autoplay on
+    const pvRow = document.getElementById('ap-preview-row');
+    if (pvRow) pvRow.style.display = frames.some(fr => fr && fr.autoplay) ? 'flex' : 'none';
 }
 function toggleFrameAutoplay() {
     const f = frames[currentIdx]; if (!f) return;
@@ -446,6 +450,174 @@ function applyAutoplayToAll() {
     hasUnsavedChanges = true;
     renderFrameAutoplay(); renderMobFrames();
     if (typeof showToast === 'function') showToast('Autoplay applied to all frames');
+}
+
+// autoplay preview. runs the same schedule reader.js uses (timed, or wait for the frame's sound with a timed backup) so creators see exactly what readers get before publishing.
+// it's on whenever the eye (hide UI) view is up, or when started from the Autoplay panel. frames without autoplay just sit there, like in the reader, and it never advances off the last frame.
+// var (not let) so activateFrame can safely call the hook even if a frame is activated before this line has run
+var _apPv = { on: false, paused: false, timer: null, waitSound: false, idx: -1, t0: 0, dur: 0, tick: null, audioKey: null };
+
+function _apPvAudioEl() {
+    let a = document.getElementById('ap-pv-audio');
+    if (!a) { a = document.createElement('audio'); a.id = 'ap-pv-audio'; a.preload = 'none'; a.style.display = 'none'; document.body.appendChild(a); }
+    return a;
+}
+function _apPvClear() { clearTimeout(_apPv.timer); _apPv.timer = null; _apPv.waitSound = false; _apPv.dur = 0; }
+
+// dont advance behind an open sheet/modal or a hidden tab
+function _apPvBlocked() {
+    if (document.hidden) return true;
+    return !!document.querySelector('.bottom-sheet.open, #transform-sheet.open, #drafts-modal.open');
+}
+
+// only the last frame of an audio span waits on the clip, earlier ones are timed so the shared clip keeps playing
+function _apPvIsLastInSpan(f, i) {
+    if (f.audio_span_start == null || f.audio_span_len == null) return true;
+    return i >= f.audio_span_start + f.audio_span_len - 1;
+}
+
+function _apPvSyncAudio(f) {
+    const a = _apPvAudioEl();
+    if (!f || !f.audio_url) {
+        if (!a.paused) a.pause();
+        a.removeAttribute('src'); a.ontimeupdate = null; a.onended = null;
+        _apPv.audioKey = null;
+        return;
+    }
+    const start = f.audio_start || 0;
+    const key = f.audio_url + '|' + start;
+    if (key === _apPv.audioKey) return;  // same clip (a span), let it keep playing
+    _apPv.audioKey = key;
+    if (!a.paused) a.pause();
+    a.src = f.audio_url;
+    a.currentTime = start;
+    const end = f.audio_end != null ? f.audio_end : Infinity;
+    a.ontimeupdate = () => { if (a.currentTime >= end) { a.pause(); _apPvAudioDone(); } };
+    a.onended = () => _apPvAudioDone();
+    a.play().catch(() => {});
+}
+function _apPvAudioDone() { if (_apPv.on && _apPv.waitSound) _apPvTryAdvance(); }
+
+function _apPvArm(ms) {
+    _apPv.t0 = Date.now(); _apPv.dur = ms;
+    _apPv.timer = setTimeout(_apPvTryAdvance, ms);
+    _apPvUpdateUI();
+}
+
+function _apPvTryAdvance() {
+    _apPvClear();
+    if (!_apPv.on || _apPv.paused) return;
+    if (_apPvBlocked()) { _apPv.timer = setTimeout(_apPvTryAdvance, 400); return; }
+    if (currentIdx < frames.length - 1) {
+        activateFrame(currentIdx + 1);
+        updateFrameCounter();
+        if (typeof updateActiveFrameThumb === 'function') updateActiveFrameThumb();
+        if (currentIdx === frames.length - 1) showToast('Autoplay preview finished');
+    }
+}
+
+function _apPvSchedule() {
+    const f = frames[currentIdx];
+    if (_apPv.idx === currentIdx && (_apPv.timer || _apPv.waitSound)) { _apPvUpdateUI(); return; } // same frame re-rendered, leave the running timer alone
+    _apPvClear();
+    _apPv.idx = currentIdx;
+    if (!f || !f.autoplay || _apPv.paused || currentIdx >= frames.length - 1) { _apPvUpdateUI(); return; }
+
+    const sec = clampAutoplaySec(f.autoplay_sec != null ? f.autoplay_sec : AUTOPLAY_DEFAULT_SEC);
+    if (f.autoplay_sound && f.audio_url && _apPvIsLastInSpan(f, currentIdx)) {
+        _apPv.waitSound = true;
+        // if the sound never starts (browser block), fall back to the timed duration instead of getting stuck
+        const startedFor = currentIdx;
+        _apPv.timer = setTimeout(() => {
+            _apPv.timer = null;
+            if (!_apPv.on || currentIdx !== startedFor || !_apPv.waitSound) return;
+            const a = _apPvAudioEl();
+            const playing = a.src && !a.paused && !a.ended;
+            if (!playing) { _apPv.waitSound = false; _apPvArm(Math.max(0, sec * 1000 - 1500)); }
+        }, 1500);
+        _apPvUpdateUI();
+        return;
+    }
+    _apPvArm(sec * 1000);
+}
+
+// called from activateFrame
+function _apPvOnFrame() {
+    if (!_apPv || !_apPv.on) return;
+    // sound only joins the preview if the comic actually uses autoplay, so the eye view stays silent for everyone else
+    if (!_apPv.paused && frames.some(fr => fr && fr.autoplay)) _apPvSyncAudio(frames[currentIdx]);
+    _apPvSchedule();
+}
+
+function _apPvUpdateUI() {
+    const pill = document.getElementById('ap-pv-pill');
+    if (!pill) return;
+    const f = frames[currentIdx];
+    const show = _apPv.on && !!(f && f.autoplay) && currentIdx < frames.length - 1;
+    pill.classList.toggle('show', show);
+    if (!show) { clearInterval(_apPv.tick); _apPv.tick = null; return; }
+    document.getElementById('ap-pv-toggle').innerText = _apPv.paused ? '▶' : '⏸';
+    if (!_apPv.tick) _apPv.tick = setInterval(_apPvTickUI, 100);
+    _apPvTickUI();
+}
+function _apPvTickUI() {
+    const lab = document.getElementById('ap-pv-label'), bar = document.getElementById('ap-pv-bar');
+    if (!lab || !bar) return;
+    const head = 'Frame ' + (currentIdx + 1) + ' · ';
+    if (_apPv.paused) { lab.innerText = head + 'paused'; return; }
+    if (_apPv.waitSound) { lab.innerText = head + '♪ until sound ends'; bar.style.width = '100%'; return; }
+    if (_apPv.dur > 0) {
+        const left = Math.max(0, _apPv.dur - (Date.now() - _apPv.t0));
+        lab.innerText = head + (left / 1000).toFixed(1) + 's';
+        bar.style.width = (100 * left / _apPv.dur) + '%';
+    }
+}
+
+function apPvStart(fromIdx) {
+    stopAllMobAudioPreviews();  // editor's own audio-sheet player shouldnt talk over the preview
+    _apPvClear();
+    _apPv.on = true; _apPv.paused = false; _apPv.idx = -1; _apPv.audioKey = null;
+    if (fromIdx != null && fromIdx !== currentIdx && fromIdx >= 0 && fromIdx < frames.length) {
+        activateFrame(fromIdx); updateFrameCounter();
+        if (typeof updateActiveFrameThumb === 'function') updateActiveFrameThumb();
+    } else {
+        _apPvOnFrame();
+    }
+}
+function apPvStop() {
+    _apPv.on = false; _apPv.paused = false; _apPvClear(); _apPv.idx = -1; _apPv.audioKey = null;
+    const a = document.getElementById('ap-pv-audio');
+    if (a) { a.pause(); a.removeAttribute('src'); a.ontimeupdate = null; a.onended = null; }
+    _apPvUpdateUI();
+}
+function apPvTogglePause() {
+    _apPv.paused = !_apPv.paused;
+    const a = _apPvAudioEl();
+    if (_apPv.paused) {
+        _apPvClear();
+        if (!a.paused) a.pause();
+    } else {
+        const f = frames[currentIdx];
+        const key = f && f.audio_url ? f.audio_url + '|' + (f.audio_start || 0) : null;
+        if (key && key === _apPv.audioKey) { if (a.paused && !a.ended) a.play().catch(() => {}); }
+        else if (frames.some(fr => fr && fr.autoplay)) _apPvSyncAudio(f);
+        _apPv.idx = -1;  // fresh schedule for the frame on screen
+        _apPvSchedule();
+    }
+    _apPvUpdateUI();
+}
+// pill's X: back to the editor
+function apPvExit() {
+    if (document.getElementById('top-bar').style.display === 'none') toggleHideUI(); // that call stops the preview
+    else apPvStop();
+}
+// Autoplay panel buttons: jump into the eye view and run it
+function apPvStartFromPanel(fromStart) {
+    if (!frames.some(fr => fr && fr.autoplay)) { showToast('Turn autoplay on for a frame first'); return; }
+    _apPv.on = true;  // so the eye view below doesn't kick off a second run
+    closeAllSheets(); closeTransformSheet();
+    if (document.getElementById('top-bar').style.display !== 'none') toggleHideUI();
+    apPvStart(fromStart ? 0 : currentIdx);
 }
 
 // sheet system
@@ -7695,6 +7867,9 @@ function toggleHideUI() {
     document.getElementById('zoom-controls').style.display = isHidden ? '' : 'none';
     document.getElementById('hidden-ui-bar').style.display = isHidden ? 'none' : 'flex';
     if (!isHidden) { closeAllSheets(); closeTransformSheet(); }
+    // the eye view is the preview: entering it runs autoplay like the reader would, leaving it stops everything
+    if (!isHidden) { if (!_apPv.on) apPvStart(); }
+    else apPvStop();
 }
 function toggleEditorPrefs() {}
 function closeEditorPrefs() {}
