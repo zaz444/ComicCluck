@@ -3093,12 +3093,65 @@ async function useUploadedAudioClip() {
 }
 
 // layers
+// layer rows show what the layer actually is: a sprite/extra uses its real name (packData / effectData), uploads use the file name, text uses its words. no more "Image 3"
 function getLayerName(layer, i) {
     if (layer.nameTag) return layer.nameTag;
+    if (layer.type === 'img') {
+        const n = (layer.packData && layer.packData.name) || (layer.effectData && layer.effectData.name) || layer.fileName;
+        if (n) return n;
+        return layer.effectData ? 'Extra' : layer.packData ? 'Sprite' : 'Image';
+    }
     if (layer.content) return layer.content.substring(0, 18) + (layer.content.length > 18 ? '…' : '');
-    const typeNames = { img: 'Image', bubble: 'Bubble', thinking: 'Thought', text: 'Text', subtitle: 'Subtitle', panel: 'Panel' };
-    return (typeNames[layer.type] || layer.type) + ' ' + (i + 1);
+    const typeNames = { bubble: 'Bubble', thinking: 'Thought', text: 'Text', subtitle: 'Subtitle', panel: 'Panel' };
+    return typeNames[layer.type] || layer.type;
 }
+
+function _lyEsc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+// same artwork the Add / Extras / BG buttons use, so a layer's icon matches where it came from
+var _LY_UIB = 'https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/uibuttons/';
+function _lyImgIco(file, extra) { return '<img src="' + _LY_UIB + file + '" alt="" style="width:22px;height:22px;object-fit:contain;' + (extra || '') + '">'; }
+function getLayerSourceInfo(layer) {
+    const t = layer.type;
+    if (t === 'img') {
+        if (layer.effectData) return { label: 'Extras', ico: _lyImgIco('effects.webp') };
+        if (layer.packData) {
+            const from = layer.packData._from || (layer.packData.isUserSprite ? 'custom' : null);
+            if (from === 'gallery') return { label: 'Sprite Gallery', ico: '<span style="position:relative;display:inline-block;line-height:0;">' + _lyImgIco('sprites.png', 'filter:hue-rotate(90deg) saturate(2);') + '<span style="position:absolute;top:-2px;right:-3px;background:#a855f7;border-radius:50%;width:8px;height:8px;"></span></span>' };
+            if (from === 'favorites') return { label: 'Favorites', ico: '<i class="fi fi-rs-star"></i>' };
+            if (from === 'custom') return { label: 'My Custom Sprites', ico: '<i class="fi fi-rs-user"></i>' };
+            if (from === 'library') return { label: 'Sprite Library', ico: _lyImgIco('sprites.png') };
+            return { label: 'Sprite', ico: _lyImgIco('sprites.png') }; // placed before sources were recorded
+        }
+        return { label: 'Uploaded image', ico: '<i class="fi fi-rs-cloud-upload"></i>' };
+    }
+    // text-ish layers reuse the little logos from the Add sheet
+    if (t === 'bubble') return { label: 'Speech bubble', ico: '<span style="background:#fff;border:2px solid #000;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:900;color:#000;line-height:1;box-shadow:1px 1px 0 #000;">Aa</span>' };
+    if (t === 'thinking') return { label: 'Thought bubble', ico: '<span style="background:#fff;border:2px dashed #000;border-radius:999px;padding:2px 8px;font-size:10px;font-weight:900;color:#000;line-height:1;">Aa</span>' };
+    if (t === 'text') return { label: 'Plain text', ico: '<span style="font-size:16px;font-weight:900;color:#fff;line-height:1;">Aa</span>' };
+    if (t === 'subtitle') return { label: 'Subtitle bar', ico: '<span style="display:flex;flex-direction:column;width:34px;"><span style="background:#ff9500;color:#fff;font-size:5px;font-weight:900;letter-spacing:0.4px;padding:1px 4px;border-radius:3px 3px 0 0;text-align:center;line-height:1.2;">NAME</span><span style="background:rgba(255,255,255,0.96);color:#111;font-size:7px;font-weight:700;padding:1px 4px;border-radius:0 0 3px 3px;text-align:center;line-height:1.2;">Aa</span></span>' };
+    if (t === 'panel') return { label: 'Panel', ico: '<span style="width:22px;height:16px;border:2.5px solid #fff;border-radius:2px;display:block;box-sizing:border-box;"></span>' };
+    return { label: t, ico: '' };
+}
+
+// the frame's background isn't a layer, but it sits at the bottom of the stack so it gets a row too (tap it to open BG)
+function appendBgRow(list, f) {
+    const bg = f.background || '#ffffff';
+    const isImg = /^(https?:|data:image|blob:)/.test(bg);
+    const isGrad = bg.indexOf('gradient(') !== -1;
+    const name = isImg ? (f.bgName || 'Background image') : isGrad ? 'Gradient' : 'Solid color';
+    const label = isImg
+        ? ({ official: 'Background library', mine: 'My backgrounds', upload: 'Uploaded background' }[f.bgFrom] || 'Background')
+        : 'Background';
+    const ico = isImg ? _lyImgIco('bg.webp')
+        : '<span style="display:block;width:22px;height:22px;border-radius:5px;border:1.5px solid #555;box-sizing:border-box;background:' + _lyEsc(bg) + ';"></span>';
+    const row = document.createElement('div');
+    row.className = 'mob-layer-bg';
+    row.innerHTML = '<span class="l-ico">' + ico + '</span><div class="l-info"><div class="l-name">' + _lyEsc(name) + '</div><div class="l-type">' + _lyEsc(label) + '</div></div><span class="l-chev">›</span>';
+    row.onclick = () => openSheet('bg');
+    list.appendChild(row);
+}
+var _bgChoiceName = null, _bgChoiceFrom = null, _lastImportName = null; // carried from the picker/uploader into the frame it ends up on
 
 function renderMobLayers() {
     const list = document.getElementById('mob-layer-list');
@@ -3107,6 +3160,7 @@ function renderMobLayers() {
     const f = frames[currentIdx];
     if (!f.layers.length) {
         list.innerHTML = '<div style="color:#555;text-align:center;padding:20px;font-size:13px;">No layers yet</div>';
+        appendBgRow(list, f);
         return;
     }
 
@@ -3117,9 +3171,7 @@ function renderMobLayers() {
         item.className = 'mob-layer-item' + (layer === activeLayer ? ' active-l' : '') + (layer.pinned ? ' pinned-l' : '');
         item.dataset.layerIdx = i;
 
-        const ico = layer.type === 'img' ? '🖼' : layer.type === 'bubble' ? '💬' :
-                    layer.type === 'thinking' ? '💭' : layer.type === 'subtitle' ? '📋' :
-                    layer.type === 'panel' ? '▭' : '✍️';
+        const srcInfo = getLayerSourceInfo(layer);
         const name = getLayerName(layer, i);
 
         // drag handle
@@ -3130,13 +3182,13 @@ function renderMobLayers() {
 
         // icon
         const icoEl = document.createElement('span');
-        icoEl.style.cssText = 'font-size:18px;flex-shrink:0;';
-        icoEl.innerText = ico;
+        icoEl.className = 'l-ico';
+        icoEl.innerHTML = srcInfo.ico;
 
         // info
         const info = document.createElement('div');
         info.className = 'l-info';
-        info.innerHTML = `<div class="l-name">${name}</div><div class="l-type">${layer.type}</div>`;
+        info.innerHTML = `<div class="l-name">${_lyEsc(name)}</div><div class="l-type">${_lyEsc(srcInfo.label)}</div>`;
 
         // double tap to rename
         let nameTapTime = 0;
@@ -3203,6 +3255,7 @@ function renderMobLayers() {
 
         list.appendChild(item);
     });
+    appendBgRow(list, f);
 }
 
 // touch drag-to-reorder for layers
@@ -3726,7 +3779,7 @@ function renderMobSpriteGrid(sprites) {
         card.innerHTML = `<img src="${sp.src}" loading="lazy" style="width:100%;height:100%;object-fit:contain;border-radius:8px;"><div class="mob-sprite-name">${sp.name || 'My Sprite'}</div>`;
         card.onclick = () => {
             closeSheet('sprites');
-            openActionModal({ id: sp.id, name: sp.name, image_data: sp.src, actions: sp.actions || {} });
+            openActionModal({ id: sp.id, name: sp.name, image_data: sp.src, actions: sp.actions || {}, _from: 'library' });
         };
         grid.appendChild(card);
     });
@@ -3877,7 +3930,7 @@ async function mobPackItemClick(it) {
     const full = await sbFetchFull(id);
     if (!full) return;
     const spriteObj = (sidebarSprites||[]).find(s=>s.id===id) || { id, name:it.label };
-    openActionModal({ ...spriteObj, ...full, id });
+    openActionModal({ ...spriteObj, ...full, id, _from: 'library' });
 }
 
 let mobSidebarEffects = null;
@@ -4252,6 +4305,7 @@ function renderMobColors() {
 function applyMobBgColor(color) {
     saveState();
     frames[currentIdx].background = color;
+    delete frames[currentIdx].bgName; delete frames[currentIdx].bgFrom;
     frames[currentIdx].bgSettings = { scale:1, rotate:0, x:0, y:0, filter:'none' };
     render();
     closeSheet('bg');
@@ -4415,6 +4469,7 @@ function renderMobBgGrid() {
             }
             closeSheet('bg');
             currentImportType = 'bg';
+            _bgChoiceName = bg.name || null; _bgChoiceFrom = mobBgTab; _lastImportName = null;
             showBgImportChoice(src);
         };
         grid.appendChild(card);
@@ -5400,6 +5455,9 @@ async function bgChoiceFixed() {
     }
 
     frames[currentIdx].background = finalSrc;
+    frames[currentIdx].bgName = _bgChoiceName || _lastImportName || undefined;
+    frames[currentIdx].bgFrom = _bgChoiceFrom || undefined;
+    _bgChoiceName = null; _bgChoiceFrom = null; _lastImportName = null;
     // reset bg settings on new bg
     frames[currentIdx].bgSettings = { scale: 1, rotate: 0, x: 0, y: 0, filter: 'none' };
     _bgChoiceSrc = null;
@@ -5681,6 +5739,8 @@ function closeFxPanel() { closeSheet('fx'); }
 function triggerImport(type) { currentImportType = type; document.getElementById('img-input').click(); }
 document.getElementById('img-input').addEventListener('change', (e) => {
     const file = e.target.files[0]; if (!file) return;
+    _lastImportName = (file.name || '').replace(/\.[^.]+$/, '') || null;
+    _bgChoiceFrom = (currentImportType === 'bg' || currentImportType === 'bg_crop') ? 'upload' : null;
     const reader = new FileReader();
     reader.onload = (ev) => {
         if (currentImportType === 'bg_crop') {
@@ -5694,7 +5754,7 @@ document.getElementById('img-input').addEventListener('change', (e) => {
             saveState();
             const cw = canvas.offsetWidth || 300, ch = canvas.offsetHeight || 300;
             const initW = Math.round(cw * 0.5);
-            const nl = { type: 'img', src: ev.target.result, w: initW, x: Math.round(cw * 0.25), y: Math.round(ch * 0.25), rotation: 0, flipped: false, id: Date.now() };
+            const nl = { type: 'img', src: ev.target.result, w: initW, x: Math.round(cw * 0.25), y: Math.round(ch * 0.25), rotation: 0, flipped: false, id: Date.now(), fileName: _lastImportName || undefined };
             frames[currentIdx].layers.push(nl);
             activeLayer = nl;
             render();
@@ -5763,6 +5823,9 @@ document.getElementById('apply-crop-btn').onclick = async () => {
         }
         saveState();
         frames[currentIdx].background = fullSrc;
+        frames[currentIdx].bgName = _bgChoiceName || _lastImportName || undefined;
+        frames[currentIdx].bgFrom = _bgChoiceFrom || undefined;
+        _bgChoiceName = null; _bgChoiceFrom = null; _lastImportName = null;
         frames[currentIdx].bgSettings = {
             scale: bgScale, rotate: 0, x: bgX, y: bgY,
             filter: frames[currentIdx].bgSettings?.filter || 'none'
@@ -5798,7 +5861,7 @@ document.getElementById('apply-crop-btn').onclick = async () => {
             const finalSrc = url || data;
             const cw = canvas.offsetWidth || 300, ch = canvas.offsetHeight || 300;
             const initW = Math.round(cw * 0.5);
-            const nl = { type:'img', src:finalSrc, w:initW, h:initW, x:Math.round(cw*0.25), y:Math.round(ch*0.25), rotation:0, flipped:false, id:Date.now() };
+            const nl = { type:'img', src:finalSrc, w:initW, h:initW, x:Math.round(cw*0.25), y:Math.round(ch*0.25), rotation:0, flipped:false, id:Date.now(), fileName: _lastImportName || undefined };
             frames[currentIdx].layers.push(nl);
             activeLayer = nl;
             const probe = new Image();
@@ -7425,7 +7488,7 @@ function applyPendingBg(pendingBg, pendingBgId) {
     if (!pendingBg) return;
     localStorage.removeItem('pending_background');
     if (pendingBg.startsWith('http') || pendingBg.startsWith('data:image')) { currentImportType='bg'; showBgImportChoice(pendingBg); }
-    else { frames[currentIdx].background = pendingBg; render(); }
+    else { frames[currentIdx].background = pendingBg; delete frames[currentIdx].bgName; delete frames[currentIdx].bgFrom; render(); }
 }
 
 window.onload = async function() {
@@ -7679,12 +7742,12 @@ window.onload = async function() {
                 }
             } else if (incoming.image_data) {
                 // full data available, open modal directly
-                if (typeof openActionModal === 'function') openActionModal(incoming);
+                if (typeof openActionModal === 'function') openActionModal({ ...incoming, _from: 'gallery' });
             } else if (incoming.id) {
                 // fetch full data then open modal
                 if (typeof galFetchFull === 'function') {
                     galFetchFull(incoming.id).then(full => {
-                        if (full && typeof openActionModal === 'function') openActionModal({ ...incoming, ...full });
+                        if (full && typeof openActionModal === 'function') openActionModal({ ...incoming, ...full, _from: 'gallery' });
                     });
                 }
             }
@@ -8611,7 +8674,7 @@ function renderMobGallery(sprites) {
             if (e.target === favBtn) return;
             lsSet('sprite-used-' + pack.id, Date.now());
             const full = await mobGalFetchFull(pack.id);
-            if (full) { closeSheet('gallery'); openActionModal({ ...pack, ...full }); }
+            if (full) { closeSheet('gallery'); openActionModal({ ...pack, ...full, _from: 'gallery' }); }
         };
 
         grid.appendChild(card);
@@ -8710,7 +8773,7 @@ function renderMobFavSprites() {
         card.onclick = async (e) => {
             if (e.target === unfavBtn) return;
             const full = await sbFetchFull(fav.id);
-            if (full) { closeSheet('favorites'); openActionModal({ ...fav, ...full }); }
+            if (full) { closeSheet('favorites'); openActionModal({ ...fav, ...full, _from: 'favorites' }); }
         };
         grid.appendChild(card);
     });
@@ -8923,7 +8986,7 @@ function renderMobMySpritesGrid(sprites) {
             let actions = sp.actions || {};
             if (typeof actions === 'string') try { actions = JSON.parse(actions); } catch(x) { actions = {}; }
             closeSheet('mysprites');
-            openActionModal({ id: sp.id, name: sp.name, image_data: sp.image_data, actions, isUserSprite: true });
+            openActionModal({ id: sp.id, name: sp.name, image_data: sp.image_data, actions, isUserSprite: true, _from: 'custom' });
         };
         grid.appendChild(card);
     });
