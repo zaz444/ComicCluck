@@ -556,7 +556,7 @@ function _apPvUpdateUI() {
     const show = _apPv.on && !!(f && f.autoplay) && currentIdx < frames.length - 1;
     pill.classList.toggle('show', show);
     if (!show) { clearInterval(_apPv.tick); _apPv.tick = null; return; }
-    document.getElementById('ap-pv-toggle').innerText = _apPv.paused ? '▶' : '⏸';
+    document.getElementById('ap-pv-toggle').innerText = _apPv.paused ? 'Resume' : 'Pause';
     if (!_apPv.tick) _apPv.tick = setInterval(_apPvTickUI, 100);
     _apPvTickUI();
 }
@@ -605,11 +605,6 @@ function apPvTogglePause() {
         _apPvSchedule();
     }
     _apPvUpdateUI();
-}
-// pill's X: back to the editor
-function apPvExit() {
-    if (document.getElementById('top-bar').style.display === 'none') toggleHideUI(); // that call stops the preview
-    else apPvStop();
 }
 // Autoplay panel buttons: jump into the eye view and run it
 function apPvStartFromPanel(fromStart) {
