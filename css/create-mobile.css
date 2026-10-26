@@ -644,7 +644,7 @@
     .mob-frame-audio-badge {
         position: absolute; bottom: 3px; left: 3px; background: rgba(0,210,255,0.88);
         color: #001318; font-size: 10px; border-radius: 4px; padding: 1px 4px;
-        line-height: 1.4; pointer-events: none;
+        line-height: 1.4; pointer-events: none; display: flex; align-items: center;
     }
 
     /* ── FRAME AUTOPLAY ── */
@@ -695,6 +695,7 @@
     #ap-pv-bar { height: 100%; width: 100%; background: var(--accent); }
 
     /* ── AUDIO SHEET ── */
+    .au-i { margin-right: 6px; vertical-align: -1px; }
     .mob-audio-main-tab {
         flex: 1; padding: 8px; border-radius: 10px; border: 1px solid #222;
         background: #111; color: #555; font-size: 11px; font-weight: 800;
@@ -741,7 +742,7 @@
         background: #161618; border: 1.5px dashed #2c2c2e; border-radius: 12px;
         padding: 22px 14px; cursor: pointer; text-align: center;
     }
-    .mob-audio-upload-box .au-ico { font-size: 26px; }
+    .mob-audio-upload-box .au-ico { font-size: 26px; color: var(--teal); line-height: 1; }
     .mob-audio-trim-row { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; }
     .mob-audio-trim-row label { width: 64px; flex-shrink: 0; font-size: 10px; font-weight: 800; color: #8e8e93; text-transform: uppercase; }
     .mob-audio-trim-row input[type=range] { flex: 1; accent-color: var(--teal); }
