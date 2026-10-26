@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ComicCore — Sprite Editor</title>
+<title>ComicCore — Sprite Studio</title>
 <script>
-
+// One-time cleanup: drop any old service worker (whatever its filename) and its caches,
+// so stale copies of this page can't be served. Reloads at most once per session.
 (async () => {
   try {
     let cleaned = false;
@@ -36,7 +37,7 @@ body {
   height: 100dvh;
   display: flex; align-items: center; justify-content: center;
 }
-/* stop */
+/* Fills the screen, but never scales past the image's own 2048x2048 size */
 #construction {
   display: block;
   width: auto; height: auto;
@@ -45,7 +46,7 @@ body {
   -webkit-user-drag: none; user-select: none;
 }
 
-/* back */
+/* Back button: same size, shape, icon and hover as Discover's, recolored for the light background */
 .icon-btn {
   position: fixed; z-index: 10;
   top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px;
@@ -59,7 +60,7 @@ body {
 </style>
 </head>
 <body>
-<button class="icon-btn" onclick="location.href='https://zaz444.github.io/index.html'" title="Back"><i class="fi fi-rs-arrow-left"></i></button>
+<button class="icon-btn" onclick="location.href='index.html'" title="Back"><i class="fi fi-rs-arrow-left"></i></button>
 <img id="construction" alt="STOP! This page is currently under construction" src="https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/comiccore-assets/buttons/Untitled173_20261025203151.png">
 </body>
 </html>
