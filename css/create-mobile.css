@@ -686,8 +686,8 @@
     }
     #ap-pv-pill.show { display: flex; }
     #ap-pv-pill button {
-        width: 26px; height: 26px; border-radius: 50%; border: none; padding: 0; cursor: pointer;
-        background: rgba(255,255,255,0.12); color: #fff; font-size: 12px; font-family: inherit; line-height: 1;
+        height: 26px; min-width: 62px; border-radius: 999px; border: none; padding: 0 12px; cursor: pointer;
+        background: rgba(255,255,255,0.12); color: #fff; font-size: 11px; font-weight: 800; font-family: inherit; line-height: 1;
     }
     #ap-pv-pill button:active { background: var(--accent); color: #000; }
     #ap-pv-label { min-width: 70px; text-align: center; }
