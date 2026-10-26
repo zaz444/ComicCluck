@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ComicCore — Sprite Studio</title>
+<title>ComicCore — Sprite Editor</title>
 <script>
-// One-time cleanup: drop any old service worker (whatever its filename) and its caches,
-// so stale copies of this page can't be served. Reloads at most once per session.
+
 (async () => {
   try {
     let cleaned = false;
@@ -37,7 +36,7 @@ body {
   height: 100dvh;
   display: flex; align-items: center; justify-content: center;
 }
-/* Fills the screen, but never scales past the image's own 2048x2048 size */
+/* stop */
 #construction {
   display: block;
   width: auto; height: auto;
@@ -46,7 +45,7 @@ body {
   -webkit-user-drag: none; user-select: none;
 }
 
-/* Back button: same size, shape, icon and hover as Discover's, recolored for the light background */
+/* back btn */
 .icon-btn {
   position: fixed; z-index: 10;
   top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px;
