@@ -677,6 +677,22 @@
     .ap-check { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; color: #ccc; cursor: pointer; }
     .ap-check input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
     .ap-check.disabled { opacity: 0.45; }
+    /* autoplay preview pill (eye view) */
+    #ap-pv-pill {
+        display: none; position: fixed; top: 46px; left: 50%; transform: translateX(-50%);
+        z-index: 9998; align-items: center; gap: 8px; padding: 5px 8px 9px; overflow: hidden;
+        background: rgba(20,20,22,0.92); border: 1px solid #333; border-radius: 999px;
+        color: #fff; font-size: 12px; font-weight: 800; white-space: nowrap;
+    }
+    #ap-pv-pill.show { display: flex; }
+    #ap-pv-pill button {
+        width: 26px; height: 26px; border-radius: 50%; border: none; padding: 0; cursor: pointer;
+        background: rgba(255,255,255,0.12); color: #fff; font-size: 12px; font-family: inherit; line-height: 1;
+    }
+    #ap-pv-pill button:active { background: var(--accent); color: #000; }
+    #ap-pv-label { min-width: 70px; text-align: center; }
+    #ap-pv-bar-track { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,0.1); }
+    #ap-pv-bar { height: 100%; width: 100%; background: var(--accent); }
 
     /* ── AUDIO SHEET ── */
     .mob-audio-main-tab {
