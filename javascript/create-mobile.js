@@ -2635,7 +2635,7 @@ function renderMobFrames() {
         if (f.audio_url) {
             const ab = document.createElement('span');
             ab.className = 'mob-frame-audio-badge';
-            ab.innerText = '🔊';
+            ab.innerHTML = '<i class="fi fi-rs-volume"></i>';
             thumb.appendChild(ab);
         }
         // ratio badge only shown when a frame's ratio differs from frame 1
@@ -2675,14 +2675,17 @@ function mobFmtTime(sec) {
     return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
+// play/pause glyphs for the audio sheet buttons. plain text ▶ like before, and ❚❚ for pause since the ⏸ char renders as an emoji on phones. var so early calls before this line runs can't hit a TDZ error
+var AU_ICO_PLAY = '▶', AU_ICO_PAUSE = '❚❚';
+
 function stopAllMobAudioPreviews() {
     const p = document.getElementById('mob-audio-preview');
     if (p) { p.pause(); p.onended = null; p.ontimeupdate = null; }
     const up = document.getElementById('mob-audio-upload-player');
     if (up) up.pause();
-    if (_mobAudioRowPlaying) { _mobAudioRowPlaying.innerText = '▶'; _mobAudioRowPlaying = null; }
+    if (_mobAudioRowPlaying) { _mobAudioRowPlaying.innerHTML = AU_ICO_PLAY; _mobAudioRowPlaying = null; }
     const curBtn = document.getElementById('mob-audio-current-play');
-    if (curBtn) curBtn.innerText = '▶';
+    if (curBtn) curBtn.innerHTML = AU_ICO_PLAY;
 }
 
 function setMobAudioMainTab(tab) {
@@ -2715,7 +2718,7 @@ function renderMobAudioSheet() {
         const start = f.audio_start || 0, end = f.audio_end != null ? f.audio_end : 45;
         document.getElementById('mob-audio-current-range').innerText =
             mobFmtTime(start) + '–' + mobFmtTime(end) + ' (' + (end - start).toFixed(1) + 's)';
-        document.getElementById('mob-audio-current-play').innerText = '▶';
+        document.getElementById('mob-audio-current-play').innerHTML = AU_ICO_PLAY;
         if (previewBtn) previewBtn.style.display = mobAudioSpanValue > 1 ? 'block' : 'none';
     } else {
         cur.style.display = 'none';
@@ -2804,16 +2807,16 @@ function toggleCurrentFrameAudioPreview() {
     const p = document.getElementById('mob-audio-preview');
     const btn = document.getElementById('mob-audio-current-play');
     if (!p.paused && p.src === f.audio_url) {
-        p.pause(); btn.innerText = '▶'; return;
+        p.pause(); btn.innerHTML = AU_ICO_PLAY; return;
     }
     stopAllMobAudioPreviews();
     const start = f.audio_start || 0, end = f.audio_end != null ? f.audio_end : (start + 45);
     p.src = f.audio_url;
     p.currentTime = start;
-    p.ontimeupdate = () => { if (p.currentTime >= end) { p.pause(); btn.innerText = '▶'; } };
-    p.onended = () => { btn.innerText = '▶'; };
+    p.ontimeupdate = () => { if (p.currentTime >= end) { p.pause(); btn.innerHTML = AU_ICO_PLAY; } };
+    p.onended = () => { btn.innerHTML = AU_ICO_PLAY; };
     p.play().catch(() => {});
-    btn.innerText = '⏸';
+    btn.innerHTML = AU_ICO_PAUSE;
 }
 
 function removeFrameAudio() {
@@ -2943,7 +2946,7 @@ function renderMobAudioList() {
 
         const playBtn = document.createElement('button');
         playBtn.className = 'ar-play';
-        playBtn.innerText = '▶';
+        playBtn.innerHTML = AU_ICO_PLAY;
         playBtn.onclick = (e) => { e.stopPropagation(); toggleLibraryClipPreview(clip, playBtn); };
 
         const info = document.createElement('div');
@@ -2968,16 +2971,16 @@ function renderMobAudioList() {
 function toggleLibraryClipPreview(clip, btnEl) {
     const p = document.getElementById('mob-audio-preview');
     if (_mobAudioRowPlaying === btnEl && !p.paused) {
-        p.pause(); btnEl.innerText = '▶'; _mobAudioRowPlaying = null; return;
+        p.pause(); btnEl.innerHTML = AU_ICO_PLAY; _mobAudioRowPlaying = null; return;
     }
     stopAllMobAudioPreviews();
     p.src = clip.audio_url;
     p.currentTime = 0;
     const maxLen = Math.min(clip.duration || 45, 45);
-    p.ontimeupdate = () => { if (p.currentTime >= maxLen) { p.pause(); btnEl.innerText = '▶'; _mobAudioRowPlaying = null; } };
-    p.onended = () => { btnEl.innerText = '▶'; _mobAudioRowPlaying = null; };
+    p.ontimeupdate = () => { if (p.currentTime >= maxLen) { p.pause(); btnEl.innerHTML = AU_ICO_PLAY; _mobAudioRowPlaying = null; } };
+    p.onended = () => { btnEl.innerHTML = AU_ICO_PLAY; _mobAudioRowPlaying = null; };
     p.play().catch(() => {});
-    btnEl.innerText = '⏸';
+    btnEl.innerHTML = AU_ICO_PAUSE;
     _mobAudioRowPlaying = btnEl;
 }
 
