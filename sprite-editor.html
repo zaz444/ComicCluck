@@ -4,6 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ComicCore — Sprite Studio</title>
+<script>
+// One-time cleanup: drop any old service worker (whatever its filename) and its caches,
+// so stale copies of this page can't be served. Reloads at most once per session.
+(async () => {
+  try {
+    let cleaned = false;
+    if ('serviceWorker' in navigator) {
+      for (const r of await navigator.serviceWorker.getRegistrations()) { await r.unregister(); cleaned = true; }
+    }
+    if ('caches' in window) {
+      for (const k of await caches.keys()) { await caches.delete(k); cleaned = true; }
+    }
+    if (cleaned && !sessionStorage.getItem('cc-sw-cleaned')) {
+      sessionStorage.setItem('cc-sw-cleaned', '1');
+      location.reload();
+    }
+  } catch (e) {}
+})();
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/regular/straight.css">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff7a00">
@@ -18,7 +37,7 @@ body {
   height: 100dvh;
   display: flex; align-items: center; justify-content: center;
 }
-/* stop */
+/* Fills the screen, but never scales past the image's own 2048x2048 size */
 #construction {
   display: block;
   width: auto; height: auto;
@@ -27,7 +46,7 @@ body {
   -webkit-user-drag: none; user-select: none;
 }
 
-/* back button */
+/* Back button: same size, shape, icon and hover as Discover's, recolored for the light background */
 .icon-btn {
   position: fixed; z-index: 10;
   top: calc(16px + env(safe-area-inset-top, 0px)); left: 16px;

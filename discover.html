@@ -5,6 +5,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ComicCore — Discover</title>
+<script>
+// One-time cleanup: drop any old service worker (whatever its filename) and its caches,
+// so stale copies of this page can't be served. Reloads at most once per session.
+(async () => {
+  try {
+    let cleaned = false;
+    if ('serviceWorker' in navigator) {
+      for (const r of await navigator.serviceWorker.getRegistrations()) { await r.unregister(); cleaned = true; }
+    }
+    if ('caches' in window) {
+      for (const k of await caches.keys()) { await caches.delete(k); cleaned = true; }
+    }
+    if (cleaned && !sessionStorage.getItem('cc-sw-cleaned')) {
+      sessionStorage.setItem('cc-sw-cleaned', '1');
+      location.reload();
+    }
+  } catch (e) {}
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons@3.3.1/css/regular/straight.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
