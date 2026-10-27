@@ -314,7 +314,7 @@
         <div class="add-section-label">Media</div>
         <div class="add-grid">
             <button class="add-btn" onclick="closeSheet('add');openSheet('sprites')"><span class="add-ico"><img src="https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/uibuttons/sprites.png" class="bot-custom-icon" alt="sprite library" style="width:24px;height:24px;"></span>Sprite Library</button>
-            <button class="add-btn" onclick="closeSheet('add');openSheet('gallery')"><span class="add-ico" style="position:relative;display:inline-block;"><img src="https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/uibuttons/sprites.png" class="bot-custom-icon" alt="sprite gallery" style="width:24px;height:24px;filter:hue-rotate(90deg) saturate(2);"><span style="position:absolute;top:-3px;right:-3px;background:#a855f7;color:#fff;font-size:7px;font-weight:900;border-radius:50%;width:10px;height:10px;display:flex;align-items:center;justify-content:center;line-height:1;">🖼</span></span>Sprite Gallery</button>
+            <button class="add-btn" onclick="closeSheet('add');openSheet('gallery')"><span class="add-ico" style="position:relative;display:inline-block;"><img src="https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/uibuttons/sprites.png" class="bot-custom-icon" alt="sprite gallery" style="width:24px;height:24px;filter:hue-rotate(90deg) saturate(2);"><span style="position:absolute;top:-3px;right:-3px;background:#a855f7;color:#fff;font-size:7px;font-weight:900;border-radius:50%;width:10px;height:10px;display:flex;align-items:center;justify-content:center;line-height:1;"><svg viewBox="0 0 16 16" width="7" height="7" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg></span></span>Sprite Gallery</button>
             <button class="add-btn" onclick="closeSheet('add');openSheet('favorites')" title="Favorites"><span class="add-ico"><i class="fi fi-rs-star"></i></span>Favorites</button>
             <button class="add-btn" onclick="triggerImport('object');closeSheet('add')" title="Upload Image"><span class="add-ico"><i class="fi fi-rs-cloud-upload"></i></span>Upload Image</button>
             <button class="add-btn" onclick="openMultiImport();closeSheet('add')" title="Frame Importer"><span class="add-ico"><i class="fi fi-rs-images"></i></span>Frame Importer</button>
@@ -438,9 +438,9 @@
     <div class="sheet-body">
         <!-- bg tabs -->
         <div style="display:flex;gap:4px;margin-bottom:10px;">
-            <button class="mob-bg-main-tab active" id="mob-bg-main-images" onclick="setMobBgMainTab('images')" style="flex:1;padding:7px;border-radius:10px;border:1px solid #ff7a00;background:rgba(255,122,0,.12);color:#ff7a00;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;">🖼 Images</button>
-            <button class="mob-bg-main-tab" id="mob-bg-main-colors" onclick="setMobBgMainTab('colors')" style="flex:1;padding:7px;border-radius:10px;border:1px solid #222;background:#111;color:#555;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;">🎨 Colors</button>
-            <button class="mob-bg-main-tab" id="mob-bg-main-gradients" onclick="setMobBgMainTab('gradients')" style="flex:1;padding:7px;border-radius:10px;border:1px solid #222;background:#111;color:#555;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;">🌈 Grad</button>
+            <button class="mob-bg-main-tab active" id="mob-bg-main-images" onclick="setMobBgMainTab('images')" style="flex:1;padding:7px;border-radius:10px;border:1px solid #ff7a00;background:rgba(255,122,0,.12);color:#ff7a00;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;"><svg class="bgt-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><circle cx="5.5" cy="6.5" r="1.2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg>Images</button>
+            <button class="mob-bg-main-tab" id="mob-bg-main-colors" onclick="setMobBgMainTab('colors')" style="flex:1;padding:7px;border-radius:10px;border:1px solid #222;background:#111;color:#555;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;"><span class="bgt-ico bgt-colors"></span>Colors</button>
+            <button class="mob-bg-main-tab" id="mob-bg-main-gradients" onclick="setMobBgMainTab('gradients')" style="flex:1;padding:7px;border-radius:10px;border:1px solid #222;background:#111;color:#555;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;"><span class="bgt-ico bgt-grad"></span>Grad</button>
         </div>
 
         <!-- images pane -->
@@ -635,8 +635,8 @@
         <div id="mob-audio-pane-upload" style="display:none;">
             <div class="mob-audio-upload-box" id="mob-audio-upload-box" onclick="document.getElementById('audio-file-input').click()">
                 <span class="au-ico"><i class="fi fi-rs-folder"></i></span>
-                <div style="font-size:12px;font-weight:800;color:#aaa;">Tap to choose an audio file</div>
-                <div style="font-size:10px;color:#555;">mp3, m4a, wav — trim to 3–45s</div>
+                <div style="font-size:12px;font-weight:800;color:#aaa;">Tap to choose an audio or video file</div>
+                <div style="font-size:10px;color:#555;">mp3, m4a, wav, or mp4 (audio is extracted to mp3) — trim to 3–45s</div>
             </div>
 
             <div id="mob-audio-upload-preview" style="display:none;">
@@ -666,7 +666,7 @@
     </div>
 </div>
 
-<input type="file" id="audio-file-input" hidden accept="audio/*">
+<input type="file" id="audio-file-input" hidden accept="audio/*,video/*,.mp4,.m4v,.mov,.webm">
 <audio id="mob-audio-preview" style="display:none;"></audio>
 
 <!-- audio span preview -->
@@ -886,7 +886,7 @@
             <div id="subtitle-name-row" style="display:none;">
                 <input type="text" id="subtitle-name-input" class="pub-input" placeholder="Character…" maxlength="24" oninput="updateTextProp('characterName',this.value)" style="margin-bottom:8px;">
             </div>
-            <input type="text" id="text-content-input" class="pub-input" placeholder="Edit text..." oninput="updateTextProp('content',this.value)" style="margin-bottom:8px;">
+            <textarea id="text-content-input" class="pub-input" rows="3" placeholder="Edit text… (Enter starts a new line)" oninput="updateTextProp('content',this.value)" style="margin-bottom:8px;"></textarea>
             <select id="font-family-select" class="pub-input" onchange="updateTextProp('fontFamily',this.value)" style="margin-bottom:8px;">
                 <option value="'Inter', sans-serif">Standard</option>
                 <option value="'ComicCluck', cursive">ComicCluck</option>
@@ -921,8 +921,9 @@
                 <button class="ts-fmt-btn" id="fmt-italic" onclick="toggleTextFmt('italic')"><i>I</i></button>
                 <button class="ts-fmt-btn" id="fmt-underline" onclick="toggleTextFmt('underline')"><u>U</u></button>
                 <button class="ts-fmt-btn" id="fmt-outline" title="Outline" onclick="toggleTextFmt('outline')" style="-webkit-text-stroke:1px currentColor;paint-order:stroke fill;"><b>Aa</b></button>
-                <button class="ts-fmt-btn" style="flex:none;padding:8px 12px;" onclick="event.stopPropagation();mobToggleTextColorSwatches()">🎨</button>
+                <button class="ts-fmt-btn" style="flex:none;padding:8px 12px;" onclick="event.stopPropagation();mobToggleTextColorSwatches()" title="Text color"><span class="bgt-ico bgt-colors" style="width:16px;height:16px;margin:0;vertical-align:middle;"></span></button>
             </div>
+            <div class="ts-text-format" id="text-align-row"></div>
             <div id="outline-width-row" class="ts-row" style="display:none;">
                 <span class="ts-label">Stroke</span>
                 <input type="range" id="outline-width-slider" min="0.5" max="12" step="0.5" value="2" oninput="document.getElementById('outline-width-num').value=this.value;updateTextProp('outlineWidth',this.value)">
@@ -976,6 +977,19 @@
                 <input type="number" id="panel-radius-num" class="ts-num" value="0" min="0" max="80" oninput="document.getElementById('panel-radius-slider').value=this.value;tsApplyPanelRadius(this.value)">
             </div>
             <button onclick="closeTransformSheet();startPanelSlice();" style="width:100%;padding:10px;background:rgba(255,122,0,0.1);border:1px solid rgba(255,122,0,0.35);border-radius:10px;color:var(--accent);font-weight:800;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;margin-top:4px;"><i class="fi fi-rs-scissors"></i> Slice Panel</button>
+        </div>
+
+        <div class="ts-align-wrap">
+            <div class="ts-align-label">Align to canvas</div>
+            <div class="ts-align-row">
+            <button type="button" class="ts-align-btn" title="Align left edge to canvas" onclick="alignLayerToCanvas('left')"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v14"/><rect x="6" y="4" width="9" height="4" rx="1"/><rect x="6" y="10" width="5" height="4" rx="1"/></svg></button>
+            <button type="button" class="ts-align-btn" title="Center horizontally" onclick="alignLayerToCanvas('centerH')"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v14"/><rect x="4" y="4" width="10" height="4" rx="1"/><rect x="6" y="10" width="6" height="4" rx="1"/></svg></button>
+            <button type="button" class="ts-align-btn" title="Align right edge to canvas" onclick="alignLayerToCanvas('right')"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2v14"/><rect x="3" y="4" width="9" height="4" rx="1"/><rect x="7" y="10" width="5" height="4" rx="1"/></svg></button>
+            <button type="button" class="ts-align-btn" title="Align top edge to canvas" onclick="alignLayerToCanvas('top')"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h14"/><rect x="4" y="6" width="4" height="9" rx="1"/><rect x="10" y="6" width="4" height="5" rx="1"/></svg></button>
+            <button type="button" class="ts-align-btn" title="Center vertically" onclick="alignLayerToCanvas('middle')"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9h14"/><rect x="4" y="4" width="4" height="10" rx="1"/><rect x="10" y="6" width="4" height="6" rx="1"/></svg></button>
+            <button type="button" class="ts-align-btn" title="Align bottom edge to canvas" onclick="alignLayerToCanvas('bottom')"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 15h14"/><rect x="4" y="3" width="4" height="9" rx="1"/><rect x="10" y="7" width="4" height="5" rx="1"/></svg></button>
+            <button type="button" class="ts-align-btn" title="Center on canvas (both ways)" onclick="alignLayerToCanvas('center')"><svg viewBox="0 0 18 18" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="9" r="3.5"/><path d="M9 1v4M9 13v4M1 9h4M13 9h4"/></svg></button>
+            </div>
         </div>
 
         <div class="ts-actions">
@@ -1196,7 +1210,7 @@
             <input type="number" class="move-bg-num" id="mbg-y-num" min="-100" max="100" value="0" oninput="onMoveBgInput('y', this.value)">
         </div>
         <button id="mbg-pan-canvas-btn" onclick="togglePanOnCanvas()" style="width:100%;padding:12px;background:#111;border:1.5px solid rgba(0,180,255,0.3);color:#00b4ff;border-radius:10px;font-weight:900;cursor:pointer;font-family:inherit;font-size:13px;letter-spacing:0.3px;">
-            🖼 Pan on Comic Canvas
+            <svg class="bgt-ico" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><circle cx="5.5" cy="6.5" r="1.2"/><path d="M2 12l4-4 3 3 2-2 3.5 3.5"/></svg>Pan on Comic Canvas
         </button>
         <button id="move-bg-reset-mob" onclick="resetMoveBg()">Reset Position</button>
         <button id="move-bg-done" onclick="closeMoveBgModal()">Done ✓</button>
