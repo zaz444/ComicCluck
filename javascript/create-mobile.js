@@ -7623,7 +7623,7 @@ async function saveSpriteToPersonal() {
     const user = _cm3?.user ?? null;
     if (!user) { showToast('Log in first'); return; }
     const { error } = await _supabase.from('personal_sprites').insert([{ user_id: user.id, src: activeLayer.src, name: activeLayer.nameTag || 'My Sprite', created_at: new Date().toISOString() }]);
-    showToast(error ? error.message : 'Sprite saved');
+    showToast(error ? error.message : 'Saved to Library');
 }
 
 // go to my sprites (private sprite library/manager page)
