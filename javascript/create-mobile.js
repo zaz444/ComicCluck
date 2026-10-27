@@ -702,6 +702,7 @@ function syncTransformSheet() {
             const btn = document.getElementById('fmt-' + prop);
             if (btn) btn.classList.toggle('active', !!activeLayer[prop]);
         });
+        refreshTextAlignUI();
         const owRow = document.getElementById('outline-width-row');
         if (owRow) owRow.style.display = activeLayer.outline ? 'flex' : 'none';
         const owVal = activeLayer.outlineWidth != null ? activeLayer.outlineWidth : defaultOutlineWidth(activeLayer.fontSize || 24);
@@ -1835,7 +1836,7 @@ function _renderNow() {
             s.style.cssText = `width:${layer.w||canvas.offsetWidth}px;transform:rotate(${layer.rotation||0}deg);`;
             s.innerHTML = `
                 <div style="background:${nameColor};color:#fff;font-size:${Math.max(10,fs*0.55)}px;font-weight:900;font-family:${ff};padding:3px 10px;border-radius:5px 5px 0 0;letter-spacing:1px;text-transform:uppercase;line-height:1.5;text-align:${alignS};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${layer.characterName || 'CHARACTER'}</div>
-                <div style="background:rgba(255,255,255,0.96);color:${dialogColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,0.1);border-top:none;${outlineS}">${layer.content || 'Dialogue...'}</div>
+                <div style="background:rgba(255,255,255,0.96);color:${dialogColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,0.1);border-top:none;${outlineS}">${_txHtml(layer.content) || 'Dialogue...'}</div>
             `;
             if (layer.fxOpacity !== undefined) s.style.opacity = layer.fxOpacity / 100;
             el.appendChild(s);
@@ -2151,6 +2152,7 @@ function renderSqaFontPopover() {
             <span style="min-width:34px;text-align:center;font-size:11px;font-weight:800;color:#aaa;">${l.fontSize || 24}px</span>
             <button onclick="event.stopPropagation();mobSqaBumpSize(2)" style="width:26px;height:26px;border-radius:7px;border:1px solid #333;background:#111;color:var(--text);font-weight:900;cursor:pointer;">+</button>
         </div>
+        <div style="display:flex;gap:6px;">${_alignRowHTML(l)}</div>
         <button id="sqa-style-toggle" class="ts-fmt-btn ${anyStyleActive ? 'active' : ''}" onclick="event.stopPropagation();mobToggleSqaStyleRow()" style="flex:none;width:100%;letter-spacing:3px;box-sizing:border-box;">
             <b>B</b> <i>I</i> <u>U</u> <b style="-webkit-text-stroke:1px currentColor;paint-order:stroke fill;">Aa</b>
         </button>
@@ -2307,6 +2309,85 @@ function updateCfbExtras(layer) {
     extras.classList.add('show');
 }
 
+
+// text alignment (left / center / right). layer.align was already read by every renderer (editor, export, reader), it just had no controls
+var _ALIGN_PATHS = {
+    left:   '<path d="M3 4h12M3 8h8M3 12h12M3 16h8"/>',
+    center: '<path d="M3 4h12M5 8h8M3 12h12M5 16h8"/>',
+    right:  '<path d="M3 4h12M7 8h8M3 12h12M7 16h8"/>'
+};
+function _alignSvg(k) { return '<svg viewBox="0 0 18 20" width="16" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">' + _ALIGN_PATHS[k] + '</svg>'; }
+function _curTextAlign(l) { return l.align || ((l.type === 'bubble' || l.type === 'thinking') ? 'center' : 'left'); }
+function _alignRowHTML(l) {
+    const cur = _curTextAlign(l);
+    return ['left', 'center', 'right'].map(k =>
+        `<button type="button" class="ts-fmt-btn ${cur === k ? 'active' : ''}" title="Align ${k}" onclick="event.stopPropagation();mobSetTextAlign('${k}')" style="flex:1;display:flex;align-items:center;justify-content:center;">${_alignSvg(k)}</button>`
+    ).join('');
+}
+function refreshTextAlignUI() {
+    const row = document.getElementById('text-align-row');
+    if (row && activeLayer) row.innerHTML = _alignRowHTML(activeLayer);
+}
+function mobSetTextAlign(k) {
+    if (!activeLayer || !['bubble', 'thinking', 'text', 'subtitle'].includes(activeLayer.type)) return;
+    saveState();
+    activeLayer.align = k;
+    render(); renderTransformPreview();
+    refreshTextAlignUI();
+    const pop = document.getElementById('sqa-popover');
+    if (pop && pop.classList.contains('show') && pop.dataset.kind === 'font') renderSqaFontPopover();
+}
+
+// align the selected layer to the canvas: edges, centers, or dead center. uses the rendered box (text/bubble heights are automatic) and the rotated bounding box for edge alignment
+function alignLayerToCanvas(mode) {
+    const l = activeLayer;
+    if (!l) return;
+    const cw = canvas.offsetWidth || 300, ch = canvas.offsetHeight || 300;
+    const el = canvas.querySelector('[data-layer-id="' + l.id + '"]');
+    const w = el ? el.offsetWidth : (l.w || 0);
+    const h = el ? el.offsetHeight : (l.h != null ? l.h : (l.w || 0));
+    const rad = (l.rotation || 0) * Math.PI / 180;
+    const bbw = Math.abs(w * Math.cos(rad)) + Math.abs(h * Math.sin(rad));
+    const bbh = Math.abs(w * Math.sin(rad)) + Math.abs(h * Math.cos(rad));
+    let cx = l.x + w / 2, cy = l.y + h / 2;   // rotation is about the center, so the center is stable
+    if (mode === 'left') cx = bbw / 2;
+    else if (mode === 'right') cx = cw - bbw / 2;
+    else if (mode === 'centerH' || mode === 'center') cx = cw / 2;
+    if (mode === 'top') cy = bbh / 2;
+    else if (mode === 'bottom') cy = ch - bbh / 2;
+    else if (mode === 'middle' || mode === 'center') cy = ch / 2;
+    saveState();
+    l.x = Math.round(cx - w / 2);
+    l.y = Math.round(cy - h / 2);
+    render();
+    renderTransformPreview();
+}
+
+// snap-to-center while dragging: when a layer's center gets within a few px of the canvas center lines it locks on and a guide line shows
+var _CC_SNAP_PX = 6, _ccWasSnapX = false, _ccWasSnapY = false;
+function _ccHideGuides() {
+    ['cc-guide-v', 'cc-guide-h'].forEach(id => { const g = document.getElementById(id); if (g) g.remove(); });
+    _ccWasSnapX = false; _ccWasSnapY = false;
+}
+function _ccGuide(id, css) {
+    let g = document.getElementById(id);
+    if (!g) { g = document.createElement('div'); g.id = id; canvas.appendChild(g); }
+    g.style.cssText = 'position:absolute;pointer-events:none;z-index:99999;background:#00d2ff;box-shadow:0 0 4px rgba(0,210,255,0.8);' + css;
+}
+function _ccSnapToCenter(layer, el) {
+    const cw = canvas.offsetWidth || 300, ch = canvas.offsetHeight || 300;
+    const w = el.offsetWidth, h = el.offsetHeight;
+    const snapX = Math.abs(layer.x + w / 2 - cw / 2) <= _CC_SNAP_PX;
+    const snapY = Math.abs(layer.y + h / 2 - ch / 2) <= _CC_SNAP_PX;
+    if (snapX) layer.x = Math.round(cw / 2 - w / 2);
+    if (snapY) layer.y = Math.round(ch / 2 - h / 2);
+    const gv = document.getElementById('cc-guide-v'), gh = document.getElementById('cc-guide-h');
+    if (snapX) _ccGuide('cc-guide-v', 'left:' + (cw / 2 - 0.5) + 'px;top:0;width:1px;height:' + ch + 'px;'); else if (gv) gv.remove();
+    if (snapY) _ccGuide('cc-guide-h', 'top:' + (ch / 2 - 0.5) + 'px;left:0;height:1px;width:' + cw + 'px;'); else if (gh) gh.remove();
+    if (((snapX && !_ccWasSnapX) || (snapY && !_ccWasSnapY)) && navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+    _ccWasSnapX = snapX; _ccWasSnapY = snapY;
+}
+
 // touch drag
 var _isDragging = false; // blocks double-tap-to-transform during a drag
 function startTouchDrag(e, layer) {
@@ -2324,6 +2405,7 @@ function startTouchDrag(e, layer) {
         el.removeEventListener('touchmove', move);
         el.removeEventListener('touchend', up);
         el.removeEventListener('touchcancel', up);
+        _ccHideGuides();
         if (_isDragging) render();
         setTimeout(function() { _isDragging = false; }, 60);
     };
@@ -2344,6 +2426,7 @@ function startTouchDrag(e, layer) {
         _isDragging = true;
         layer.x = layerStartX + rawDx / canvasRenderedScale;
         layer.y = layerStartY + rawDy / canvasRenderedScale;
+        _ccSnapToCenter(layer, el);
         // direct dom update during drag
         el.style.left = layer.x + 'px';
         el.style.top  = layer.y + 'px';
@@ -2985,10 +3068,96 @@ function toggleLibraryClipPreview(clip, btnEl) {
 }
 
 // upload + trim
-document.getElementById('audio-file-input').addEventListener('change', (e) => {
-    const file = e.target.files[0];
+// video upload -> mp3. the audio is decoded in the browser and re-encoded with lamejs, then it goes through the normal upload/trim flow as a regular mp3
+var MOB_VIDEO_MAX_MB = 250, MOB_VIDEO_MAX_MIN = 15;
+function _mobIsVideoFile(file) {
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    return (file.type || '').indexOf('video/') === 0 || ['mp4', 'm4v', 'mov', 'webm'].includes(ext);
+}
+function _mobLoadScript(urls) {
+    return new Promise((resolve, reject) => {
+        let i = 0;
+        const next = () => {
+            if (i >= urls.length) return reject(new Error("Couldn't load the MP3 encoder. Check your connection and try again."));
+            const s = document.createElement('script');
+            s.src = urls[i++];
+            s.onload = () => (window.lamejs ? resolve() : next());
+            s.onerror = () => { s.remove(); next(); };
+            document.head.appendChild(s);
+        };
+        next();
+    });
+}
+async function _mobExtractAudioFromVideo(file, onProgress) {
+    if (file.size > MOB_VIDEO_MAX_MB * 1048576) throw new Error('That video is over ' + MOB_VIDEO_MAX_MB + 'MB. Trim it shorter first.');
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) throw new Error("This browser can't extract audio from video.");
+    onProgress('Loading MP3 encoder…', 0);
+    if (!window.lamejs) await _mobLoadScript([
+        'https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js',
+        'https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js'
+    ]);
+    onProgress('Reading video…', 0);
+    const buf = await file.arrayBuffer();
+    onProgress('Decoding audio…', 0);
+    const actx = new AC();
+    let audio;
+    try {
+        audio = await new Promise((res, rej) => { const p = actx.decodeAudioData(buf, res, rej); if (p && p.catch) p.catch(rej); });
+    } catch (e) {
+        throw new Error("Couldn't read audio from this video. It may have no sound, or this browser can't decode it.");
+    } finally { try { actx.close(); } catch (e) {} }
+    if (audio.duration > MOB_VIDEO_MAX_MIN * 60) throw new Error('That video is over ' + MOB_VIDEO_MAX_MIN + ' minutes. Trim it shorter first.');
+
+    let rate = audio.sampleRate;
+    let chans = [audio.getChannelData(0)];
+    if (audio.numberOfChannels > 1) chans.push(audio.getChannelData(1));
+    // lame only accepts standard rates, resample anything else to 44.1k
+    if (![8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000].includes(rate)) {
+        const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        const off = new OAC(chans.length, Math.ceil(audio.duration * 44100), 44100);
+        const src = off.createBufferSource(); src.buffer = audio; src.connect(off.destination); src.start();
+        const rendered = await new Promise((res, rej) => { const p = off.startRendering(); if (p && p.then) p.then(res, rej); else off.oncomplete = e => res(e.renderedBuffer); });
+        chans = [rendered.getChannelData(0)];
+        if (rendered.numberOfChannels > 1) chans.push(rendered.getChannelData(1));
+        rate = 44100;
+    }
+
+    const enc = new lamejs.Mp3Encoder(chans.length, rate, 128);
+    const toI16 = f => { const o = new Int16Array(f.length); for (let i = 0; i < f.length; i++) { const s = Math.max(-1, Math.min(1, f[i])); o[i] = s < 0 ? s * 0x8000 : s * 0x7FFF; } return o; };
+    const BLOCK = 1152 * 20, total = chans[0].length, parts = [];
+    for (let pos = 0, n = 0; pos < total; pos += BLOCK, n++) {
+        const end = Math.min(total, pos + BLOCK);
+        const l = toI16(chans[0].subarray(pos, end));
+        const out = chans.length > 1 ? enc.encodeBuffer(l, toI16(chans[1].subarray(pos, end))) : enc.encodeBuffer(l);
+        if (out.length) parts.push(new Uint8Array(out));
+        if (n % 8 === 0) { onProgress('Converting to MP3…', pos / total); await new Promise(r => setTimeout(r, 0)); } // yield so the page stays responsive
+    }
+    const tail = enc.flush();
+    if (tail.length) parts.push(new Uint8Array(tail));
+    const base = file.name.replace(/\.[^.]+$/, '') || 'video-audio';
+    return new File([new Blob(parts, { type: 'audio/mpeg' })], base + '.mp3', { type: 'audio/mpeg' });
+}
+
+document.getElementById('audio-file-input').addEventListener('change', async (e) => {
+    let file = e.target.files[0];
     e.target.value = '';
     if (!file) return;
+    if (_mobIsVideoFile(file)) {
+        // show progress in the trim label while the audio is pulled out of the video
+        const prev = document.getElementById('mob-audio-upload-preview');
+        const label = document.getElementById('mob-audio-trim-label');
+        document.getElementById('mob-audio-upload-name').innerText = file.name;
+        document.getElementById('mob-audio-use-btn').disabled = true;
+        prev.style.display = 'block';
+        try {
+            file = await _mobExtractAudioFromVideo(file, (msg, p) => { label.innerText = msg + (p ? ' ' + Math.round(p * 100) + '%' : ''); });
+        } catch (err) {
+            prev.style.display = 'none';
+            showToast((err && err.message) || "Couldn't extract audio from that video.");
+            return;
+        }
+    }
     _mobAudioUploadFile = file;
     if (_mobAudioUploadObjUrl) URL.revokeObjectURL(_mobAudioUploadObjUrl);
     _mobAudioUploadObjUrl = URL.createObjectURL(file);
@@ -3101,7 +3270,7 @@ function getLayerName(layer, i) {
         if (n) return n;
         return layer.effectData ? 'Extra' : layer.packData ? 'Sprite' : 'Image';
     }
-    if (layer.content) return layer.content.substring(0, 18) + (layer.content.length > 18 ? '…' : '');
+    if (layer.content) { const one = layer.content.replace(/\s*\n\s*/g, ' '); return one.substring(0, 18) + (one.length > 18 ? '…' : ''); }
     const typeNames = { bubble: 'Bubble', thinking: 'Thought', text: 'Text', subtitle: 'Subtitle', panel: 'Panel' };
     return typeNames[layer.type] || layer.type;
 }
@@ -3151,6 +3320,8 @@ function appendBgRow(list, f) {
     row.onclick = () => openSheet('bg');
     list.appendChild(row);
 }
+// escapes user text for innerHTML and turns line breaks into <br> (bubbles/subtitles render through innerHTML, plain text uses pre-wrap)
+function _txHtml(s) { return _lyEsc(s).replace(/\n/g, '<br>'); }
 var _bgChoiceName = null, _bgChoiceFrom = null, _lastImportName = null; // carried from the picker/uploader into the frame it ends up on
 
 function renderMobLayers() {
@@ -3541,7 +3712,7 @@ function buildLayerPreviewElement(layer) {
         el.style.cssText = `width:${layer.w||200}px;`;
         el.innerHTML = `
             <div style="background:${nameColor};color:#fff;font-size:${Math.max(10,fs*0.55)}px;font-weight:900;font-family:${ff};padding:3px 10px;border-radius:5px 5px 0 0;letter-spacing:1px;text-transform:uppercase;line-height:1.5;text-align:${alignS};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${layer.characterName || 'CHARACTER'}</div>
-            <div style="background:rgba(255,255,255,0.96);color:${dialogColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,0.1);border-top:none;${outlineS}">${layer.content || 'Dialogue...'}</div>
+            <div style="background:rgba(255,255,255,0.96);color:${dialogColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,0.1);border-top:none;${outlineS}">${_txHtml(layer.content) || 'Dialogue...'}</div>
         `;
     } else if (layer.type === 'img') {
         el = document.createElement('img');
@@ -7125,7 +7296,7 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
             const boldW    = layer.bold   ? '900' : '800';
             const italicS  = layer.italic ? 'italic' : 'normal';
             const deco     = [layer.underline ? 'underline' : '', layer.strikethrough ? 'line-through' : ''].filter(Boolean).join(' ') || 'none';
-            const alignS   = layer.align  || 'center';
+            const alignS   = layer.align  || ((layer.type === 'text' || layer.type === 'subtitle') ? 'left' : 'center');
             const textColor = layer.color || '#000';
             const outlineS  = layer.outline ? textOutlineCSS(fs, layer.outlineWidth != null ? layer.outlineWidth * scaleX : null) : '';
 
@@ -7159,30 +7330,35 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
 
                 if (isBurst) {
                     // two-layer outline for clipped shapes: outer border + inset inner shape painted in bubble color, since a plain border only paints literal box edges not the zigzag
-                    innerHtml = `<div style="background:${bubBorder};${clipStyle}padding:6px;width:${bw}px;box-sizing:border-box;"><div style="font-family:${ff};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};text-decoration:${deco};color:${textColor};text-align:${alignS};background:${bubBg};${clipStyle}padding:14px 18px;box-sizing:border-box;width:100%;${outlineS}">${layer.content || ''}</div></div>`;
+                    innerHtml = `<div style="background:${bubBorder};${clipStyle}padding:6px;width:${bw}px;box-sizing:border-box;"><div style="font-family:${ff};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};text-decoration:${deco};color:${textColor};text-align:${alignS};background:${bubBg};${clipStyle}padding:14px 18px;box-sizing:border-box;width:100%;${outlineS}">${_txHtml(layer.content)}</div></div>`;
                 } else {
-                    innerHtml = `<div style="font-family:${ff};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};text-decoration:${deco};color:${textColor};text-align:${alignS};background:${bubBg};border:3.5px solid ${bubBorder};border-radius:${borderRadius};padding:14px 18px;position:relative;overflow:visible;word-wrap:break-word;line-height:1.35;box-sizing:border-box;width:${bw}px;${clipStyle}${extraBorder}${outlineS}">${layer.content || ''}${tailHtml}${thoughtDots}</div>`;
+                    innerHtml = `<div style="font-family:${ff};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};text-decoration:${deco};color:${textColor};text-align:${alignS};background:${bubBg};border:3.5px solid ${bubBorder};border-radius:${borderRadius};padding:14px 18px;position:relative;overflow:visible;word-wrap:break-word;line-height:1.35;box-sizing:border-box;width:${bw}px;${clipStyle}${extraBorder}${outlineS}">${_txHtml(layer.content)}${tailHtml}${thoughtDots}</div>`;
                 }
             } else if (layer.type === 'subtitle') {
                 const nameColor = layer.nameColor || '#ff9500';
                 const subFs = Math.round(fs * 0.55);
-                innerHtml = `<div style="width:${bw}px;box-sizing:border-box;"><div style="background:${nameColor};color:#fff;font-size:${Math.max(10,subFs)}px;font-weight:900;font-family:${ff};padding:3px 10px;border-radius:5px 5px 0 0;letter-spacing:1px;text-transform:uppercase;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${layer.characterName || 'CHARACTER'}</div><div style="background:rgba(255,255,255,0.96);color:${textColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,0.1);border-top:none;box-sizing:border-box;${outlineS}">${layer.content || ''}</div></div>`;
+                innerHtml = `<div style="width:${bw}px;box-sizing:border-box;"><div style="background:${nameColor};color:#fff;font-size:${Math.max(10,subFs)}px;font-weight:900;font-family:${ff};padding:3px 10px;border-radius:5px 5px 0 0;letter-spacing:1px;text-transform:uppercase;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${layer.characterName || 'CHARACTER'}</div><div style="background:rgba(255,255,255,0.96);color:${textColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,0.1);border-top:none;box-sizing:border-box;${outlineS}">${_txHtml(layer.content)}</div></div>`;
             } else {
                 innerHtml = `<div style="font-family:${ff};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};text-decoration:${deco};color:${textColor};text-align:${alignS};white-space:pre-wrap;word-wrap:break-word;line-height:1.3;width:${bw}px;box-sizing:border-box;${outlineS}">${(layer.content || '').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`;
             }
 
             // word wrap text to maxWidth
             const wrapLines = (text, maxWidth) => {
-                const words = String(text || '').split(/\s+/).filter(Boolean);
-                const lines = []; let cur = '';
-                words.forEach(w => {
-                    const test = cur ? cur + ' ' + w : w;
-                    if (cur && ctx.measureText(test).width > maxWidth) { lines.push(cur); cur = w; }
-                    else cur = test;
+                const lines = [];
+                // each typed line break starts a new line, then each paragraph word-wraps on its own
+                String(text || '').split('\n').forEach(par => {
+                    let cur = '';
+                    par.split(/\s+/).filter(Boolean).forEach(w => {
+                        const test = cur ? cur + ' ' + w : w;
+                        if (cur && ctx.measureText(test).width > maxWidth) { lines.push(cur); cur = w; }
+                        else cur = test;
+                    });
+                    lines.push(cur);
                 });
-                if (cur) lines.push(cur);
                 return lines.length ? lines : [''];
             };
+            // x to draw a line at for the layer's alignment inside [x, x+w]
+            const alignedX = (x, w) => alignS === 'center' ? x + w / 2 : alignS === 'right' ? x + w : x;
             // draw text box on canvas directly — SVG foreignObject silently fails to rasterize on WebKit/Safari (known iOS limitation)
             const drawFallback = () => {
                 ctx.save();
@@ -7200,13 +7376,15 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
                     ctx.lineWidth = 3;
                     ctx.strokeRect(bx, by, bw, boxH);
                     ctx.fillStyle = textColor;
-                    lines.forEach((line, i) => ctx.fillText(line, bx + pad, by + pad + i * lineH, innerW));
+                    ctx.textAlign = alignS;
+                    lines.forEach((line, i) => ctx.fillText(line, alignedX(bx + pad, innerW), by + pad + i * lineH, innerW));
                 } else if (layer.type === 'subtitle') {
                     const subFs = Math.max(10, Math.round(fs * 0.55)), nameH = subFs + 12;
                     ctx.fillStyle = layer.nameColor || '#ff9500';
                     ctx.fillRect(bx, by, bw, nameH);
                     ctx.font = `900 ${subFs}px ${ff.replace(/['"]/g,'')}`;
                     ctx.fillStyle = '#fff';
+                    ctx.textAlign = 'left';
                     ctx.fillText((layer.characterName || 'CHARACTER').toUpperCase(), bx + pad, by + 6, innerW);
                     ctx.font = fontStr;
                     const lines = wrapLines(layer.content, innerW);
@@ -7215,13 +7393,15 @@ async function renderFrameToCanvas(frame, cw, ch, opts) {
                     ctx.fillStyle = 'rgba(255,255,255,0.96)';
                     ctx.fillRect(bx, by + nameH, bw, dialogH);
                     ctx.fillStyle = textColor;
-                    lines.forEach((line, i) => ctx.fillText(line, bx + pad, by + nameH + 6 + i * lineH, innerW));
+                    ctx.textAlign = alignS;
+                    lines.forEach((line, i) => ctx.fillText(line, alignedX(bx + pad, innerW), by + nameH + 6 + i * lineH, innerW));
                 } else {
                     ctx.font = fontStr;
                     ctx.fillStyle = textColor;
                     const lines = wrapLines(layer.content, bw);
                     const lineH = fs * 1.3;
-                    lines.forEach((line, i) => ctx.fillText(line, bx, by + i * lineH, bw));
+                    ctx.textAlign = alignS;
+                    lines.forEach((line, i) => ctx.fillText(line, alignedX(bx, bw), by + i * lineH, bw));
                 }
                 ctx.restore();
             };

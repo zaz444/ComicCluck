@@ -419,10 +419,10 @@ function renderLayerContent(l, el, sx, sy, lw, ovScale) {
         `text-align:${alignS}`,
         `text-decoration:${decos}`,
       ].concat(l.outline ? [textOutlineCSS(fs, l.outlineWidth != null ? l.outlineWidth * sx : null)] : []).join(';');
-      fill.appendChild(document.createTextNode(l.content || ''));
+      rdAppendMultiline(fill, l.content);
       bubble.appendChild(fill);
     } else {
-      bubble.appendChild(document.createTextNode(l.content || ''));
+      rdAppendMultiline(bubble, l.content);
     }
 
     // tail shown only for styles that use one. uses drag position + edge, falls back to legacy tailFlip for older saves
@@ -459,7 +459,7 @@ function renderLayerContent(l, el, sx, sy, lw, ovScale) {
     el.style.overflow = 'visible';
     el.innerHTML = `
       <div style="background:${nameColor};color:#fff;font-size:${Math.max(8, fs * 0.55)}px;font-weight:900;font-family:${ff};padding:3px 10px;border-radius:5px 5px 0 0;letter-spacing:1px;text-transform:uppercase;line-height:1.5;text-align:${alignS};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(l.characterName || 'CHARACTER')}</div>
-      <div style="background:rgba(255,255,255,0.96);color:${dialogColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,.1);border-top:none;${l.outline ? textOutlineCSS(fs, l.outlineWidth != null ? l.outlineWidth * sx : null) : ''}">${esc(l.content || '')}</div>`;
+      <div style="background:rgba(255,255,255,0.96);color:${dialogColor};font-size:${fs}px;font-weight:${boldW};font-style:${italicS};font-family:${ff};padding:6px 10px;border-radius:0 0 5px 5px;text-align:${alignS};line-height:1.4;border:1.5px solid rgba(0,0,0,.1);border-top:none;${l.outline ? textOutlineCSS(fs, l.outlineWidth != null ? l.outlineWidth * sx : null) : ''}">${esc(l.content || '').replace(/\n/g, '<br>')}</div>`;
 
     if (combinedFilter) el.style.filter = combinedFilter;
 
@@ -1034,6 +1034,13 @@ function openStoryShare() {
   document.getElementById('share-sheet').classList.add('open');
 }
 
+// typed line breaks in bubbles: text nodes alone collapse them, so put a <br> between lines
+function rdAppendMultiline(parent, text) {
+  String(text || '').split('\n').forEach((line, i) => {
+    if (i) parent.appendChild(document.createElement('br'));
+    parent.appendChild(document.createTextNode(line));
+  });
+}
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
