@@ -814,6 +814,9 @@
         cursor: pointer; font-family: inherit; text-align: center; transition: 0.15s;
     }
     .ts-act-btn:active { opacity: 0.7; }
+    /* neutral like the other sheet buttons, turns orange while pressed */
+    .ts-save-btn { width: 100%; padding: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; }
+    .ts-save-btn:active { background: var(--accent); border-color: var(--accent); color: #000; opacity: 1; }
     .ts-act-btn.danger { background: rgba(255,59,48,0.1); border-color: rgba(255,59,48,0.3); color: var(--danger); }
     .ts-act-btn.done { background: var(--accent); border-color: var(--accent); color: #000; }
     .ts-act-btn.icon-match {
