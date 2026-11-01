@@ -213,8 +213,8 @@
             document.getElementById('view-pfp').src = formatImageUrl(displayPic);
 
             updateOgTags({
-                title: (profile.name || handle) + ' (@' + handle + ') · ComicCore',
-                description: profile.bio || 'Check out ' + (profile.name || handle) + '\'s profile on ComicCore!',
+                title: (profile.name || handle) + ' (@' + handle + ') · ComicCluck',
+                description: profile.bio || 'Check out ' + (profile.name || handle) + '\'s profile on ComicCluck!',
                 image: formatImageUrl(displayPic),
                 url: 'https://zaz444.github.io/comiccore/profile.html?u=' + handle
             });
@@ -1352,7 +1352,7 @@
             try { await navigator.clipboard.writeText(url); const btn = event.currentTarget; const orig = btn.innerHTML; btn.innerHTML = '<span>✓</span>Copied!'; btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)'; setTimeout(() => { btn.innerHTML = orig; btn.style.borderColor = ''; btn.style.color = ''; }, 2000); }
             catch { prompt('Copy this link:', url); }
         }
-        async function nativeShare() { try { await navigator.share({ title: document.getElementById('share-card-name').innerText + ' on ComicCore', text: document.getElementById('share-card-bio').innerText || 'Check out this profile on ComicCore!', url: getProfileUrl() }); } catch {} }
+        async function nativeShare() { try { await navigator.share({ title: document.getElementById('share-card-name').innerText + ' on ComicCluck', text: document.getElementById('share-card-bio').innerText || 'Check out this profile on ComicCluck!', url: getProfileUrl() }); } catch {} }
 
 
         // -- status system --
