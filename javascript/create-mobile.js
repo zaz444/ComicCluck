@@ -1,5 +1,10 @@
+// Posing Stickman module: if the page didn't already load it, load it here so this file works on its own (the gallery sheet only needs it by the time it opens)
 if (!window.PosingStickman) { const _ps = document.createElement('script'); _ps.src = 'javascript/posing-stickman.js?v=1'; document.head.appendChild(_ps); }
+// Posing Buddy Bear: same idea as the stickman but drawn from the bear pieces, with swappable faces. It hooks itself into window.PosingStickman (and waits for it if it's still loading)
+if (!window.PosingBear) { const _pb = document.createElement('script'); _pb.src = 'javascript/posing-bear.js?v=1'; document.head.appendChild(_pb); }
 
+// create-mobile.js — all the mobile creator JS, yanked out of the html
+// good luck
         
         (function () {
             function setAppHeight() {
@@ -1251,7 +1256,7 @@ function bubbleTailHTML(bStyle, edge, pos, bubBorder, bubBg) {
 
 function attachResizeHandles(el, layer) {
     el.querySelectorAll('.joint-handle').forEach(h => h.remove());
-    if (layer.rig && window.PosingStickman) PosingStickman.attachJointHandles(el, layer, { saveState, onCommit: posingStickmanCommit });
+    if (layer.rig && window.PosingStickman && (layer.rig.kind !== 'bear' || PosingStickman.BEAR_ID)) PosingStickman.attachJointHandles(el, layer, { saveState, onCommit: posingStickmanCommit });
     el.querySelectorAll('.resize-handle').forEach(h => h.remove());
     el.querySelectorAll('.rotate-handle, .rotate-handle-stem').forEach(h => h.remove());
     const isDistort = !!layer.distorted;
@@ -4675,8 +4680,18 @@ function sbSetFullCache(id, imageData, actions, defaultScale) {
     try { localStorage.setItem('sb-full-' + id, JSON.stringify({ img: imageData, actions: actions || {}, default_scale: defaultScale || null, ts: Date.now() })); } catch(e) {}
 }
 
+// Built-in sprites are rendered locally and never live in the DB: Posing Stickman (sync) and Posing Buddy Bear (its art decodes first, so async).
+// returns undefined when the id isn't a built-in, so the caller carries on with its normal cache/DB lookup
+async function builtinSpriteFull(id) {
+    if (window.PosingStickman && id === PosingStickman.BUILTIN_ID) return PosingStickman.fullData();
+    if (id === 'builtin-posing-bear') {
+        for (let i = 0; i < 100 && !(window.PosingStickman && PosingStickman.fullDataAsync); i++) await new Promise(r => setTimeout(r, 50)); // module still loading
+        return (window.PosingStickman && PosingStickman.fullDataAsync) ? PosingStickman.fullDataAsync(id) : null;
+    }
+    return undefined;
+}
 async function sbFetchFull(id) {
-    if (window.PosingStickman && id === PosingStickman.BUILTIN_ID) return PosingStickman.fullData(); // built-in, never in the DB
+    { const _b = await builtinSpriteFull(id); if (_b !== undefined) return _b; } // built-in, never in the DB
     // cache hit, no network
     const fullCached = sbGetFullCache(id);
     if (fullCached) return { image_data: fullCached.img, actions: fullCached.actions, default_scale: fullCached.default_scale || null };
@@ -4729,21 +4744,75 @@ function closeActionModal() { document.getElementById('action-modal').style.disp
 function openActionModal(pack, isEditing = false) {
     document.getElementById('pack-title').innerText = pack.name;
     const grid = document.getElementById('action-selector-list');
-    grid.innerHTML = '';
     // highlight current action when editing
     const lastUsedSrc = (isEditing && activeLayer) ? activeLayer.src : null;
-    const main = createActionOption(pack.image_data, 'Default', lastUsedSrc === pack.image_data);
-    main.onclick = () => handleActionSelect(pack.image_data, pack, isEditing);
-    grid.appendChild(main);
-    let actions = pack.actions;
-    if (typeof actions === 'string') try { actions = JSON.parse(actions); } catch(e) { actions = {}; }
-    const items = Array.isArray(actions) ? actions.map((img, i) => [`Action ${i+1}`, img]) : Object.entries(actions || {});
-    items.forEach(([name, img]) => {
-        const opt = createActionOption(img, name, lastUsedSrc === img);
-        opt.onclick = () => handleActionSelect(img, pack, isEditing);
-        grid.appendChild(opt);
-    });
+    const buildPoses = () => {
+        grid.innerHTML = '';
+        const main = createActionOption(pack.image_data, 'Default', lastUsedSrc === pack.image_data);
+        main.onclick = () => handleActionSelect(pack.image_data, pack, isEditing);
+        grid.appendChild(main);
+        let actions = pack.actions;
+        if (typeof actions === 'string') try { actions = JSON.parse(actions); } catch(e) { actions = {}; }
+        const items = Array.isArray(actions) ? actions.map((img, i) => [`Action ${i+1}`, img]) : Object.entries(actions || {});
+        items.forEach(([name, img]) => {
+            const opt = createActionOption(img, name, lastUsedSrc === img);
+            opt.onclick = () => handleActionSelect(img, pack, isEditing);
+            grid.appendChild(opt);
+        });
+    };
+    buildPoses();
+    setupFacesTab(pack, isEditing, buildPoses);
     document.getElementById('action-modal').style.display = 'flex';
+}
+// Packs that come with faces (Posing Buddy Bear) get a Poses | Faces tab pair right next to the name. Faces only swap the head, the pose stays as it is.
+function setupFacesTab(pack, isEditing, buildPoses) {
+    const title = document.getElementById('pack-title');
+    const old = document.getElementById('pack-tabs'); if (old) old.remove();
+    const faces = (window.PosingStickman && PosingStickman.facesFor) ? PosingStickman.facesFor(pack) : null;
+    if (!faces || !title) return;
+    const grid = document.getElementById('action-selector-list');
+    const bar = document.createElement('span');
+    bar.id = 'pack-tabs';
+    bar.style.cssText = 'display:inline-flex;gap:6px;margin-left:10px;vertical-align:middle;';
+    const mk = (label) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.textContent = label;
+        b.style.cssText = 'padding:4px 12px;border-radius:14px;border:1px solid #333;background:#1a1a1a;color:#888;font-family:inherit;font-size:11px;font-weight:800;cursor:pointer;';
+        return b;
+    };
+    const bPoses = mk('Poses'), bFaces = mk('Faces');
+    const paint = (which) => [[bPoses, 'poses'], [bFaces, 'faces']].forEach(([b, k]) => {
+        const on = k === which;
+        b.style.background = on ? 'rgba(255,122,0,0.15)' : '#1a1a1a';
+        b.style.borderColor = on ? '#ff7a00' : '#333';
+        b.style.color = on ? '#ff7a00' : '#888';
+    });
+    bPoses.onclick = () => { paint('poses'); buildPoses(); };
+    bFaces.onclick = () => {
+        paint('faces'); grid.innerHTML = '';
+        const cur = (isEditing && activeLayer) ? PosingStickman.currentFace(activeLayer) : null;
+        Object.entries(faces).forEach(([name, src]) => {
+            const opt = createActionOption(src, name, cur === name);
+            opt.onclick = () => handleFaceSelect(name, pack, isEditing);
+            grid.appendChild(opt);
+        });
+    };
+    bar.append(bPoses, bFaces);
+    title.insertAdjacentElement('afterend', bar);
+    paint('poses');
+}
+function handleFaceSelect(faceName, pack, isEditing) {
+    if (isEditing && activeLayer && activeLayer.rig && activeLayer.rig.kind === 'bear') {
+        saveState();
+        PosingStickman.setFace(activeLayer, faceName);
+        closeActionModal();
+        posingStickmanCommit(activeLayer);
+        return;
+    }
+    // picked from the library/gallery: drop a new bear on the canvas already wearing that face
+    addSpriteToCanvas(pack.image_data, pack);
+    if (activeLayer && activeLayer.rig && activeLayer.rig.kind === 'bear') { PosingStickman.setFace(activeLayer, faceName); posingStickmanCommit(activeLayer); }
+    closeActionModal(); render();
 }
 function createActionOption(src, name, isLastUsed = false) {
     const div = document.createElement('div');
@@ -8790,7 +8859,7 @@ function buildMobTagSectionCard(sec, isExit) {
 }
 
 async function mobGalFetchFull(id) {
-    if (window.PosingStickman && id === PosingStickman.BUILTIN_ID) return PosingStickman.fullData();
+    { const _b = await builtinSpriteFull(id); if (_b !== undefined) return _b; }
     const cached = sbGetFullCache(id);
     if (cached) return { id, image_data: cached.img, actions: cached.actions, default_scale: cached.default_scale || null };
     const { data } = await _supabase
