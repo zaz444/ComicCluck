@@ -5,6 +5,7 @@
     <link rel="stylesheet" href="theme.css">
     <script src="theme.js"></script>
     <script src="javascript/posing-stickman.js?v=1"></script>
+    <script src="javascript/posing-bear.js?v=1"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sprite Gallery | ComicCluck</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
@@ -228,6 +229,12 @@
             background: var(--card); border: 1px solid var(--border); color: var(--text-muted);
             font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
         }
+        .prev-name-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 4px; }
+        .prev-name-row .prev-name { margin-bottom: 0; }
+        .prev-tabs { display: none; gap: 6px; }
+        .prev-tab { background: var(--card); border: 1px solid var(--border); color: var(--text-muted); font-family: inherit; font-size: 10px; font-weight: 800; padding: 4px 12px; border-radius: 20px; cursor: pointer; }
+        .prev-tab:hover { color: var(--text); }
+        .prev-tab.active { background: rgba(255,122,0,0.15); border-color: var(--orange); color: var(--orange-light); }
         .prev-actions-title { font-size: 9px; font-weight: 900; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
         .prev-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
         .prev-action-chip { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 7px 8px; text-align: center; }
@@ -654,10 +661,16 @@
             <div class="prev-img-skel" id="prev-img-skel"></div>
             <img class="prev-img" id="prev-img" src="">
         </div>
-        <div class="prev-name" id="prev-name"></div>
+        <div class="prev-name-row">
+            <div class="prev-name" id="prev-name"></div>
+            <div class="prev-tabs" id="prev-tabs">
+                <button class="prev-tab active" data-tab="poses" onclick="setPreviewTab('poses')">Poses</button>
+                <button class="prev-tab" data-tab="faces" onclick="setPreviewTab('faces')">Faces</button>
+            </div>
+        </div>
         <div class="prev-uploader" id="prev-uploader"></div>
         <div class="prev-tags" id="prev-tags"></div>
-        <div class="prev-actions-title">Actions / Poses</div>
+        <div class="prev-actions-title" id="prev-actions-title">Actions / Poses</div>
         <div class="prev-actions-grid" id="prev-actions"></div>
         <button class="prev-btn use" onclick="useSprite()"><i class="fi fi-rs-play"></i>Use in Create</button>
         <button class="prev-btn fav" id="prev-fav-btn" onclick="toggleFavFromPreview()"><i class="fi fi-rs-heart"></i>Add to Favorites</button>
@@ -1049,9 +1062,14 @@
     const imgCache = new Map();
     // Posing Stickman is built in (rendered locally, not a DB row): pre-fill the image cache so the loaders never ask the database for it
     try { if (window.PosingStickman) imgCache.set(PosingStickman.BUILTIN_ID, PosingStickman.fullData()); } catch (e) { console.warn('Posing Stickman unavailable', e); }
+    // Posing Buddy Bear is built in too, but its art has to decode first, so it lands in the cache a moment later (the loaders below wait for it)
+    const builtinsReady = (window.PosingBear && PosingBear.ready)
+        ? PosingBear.ready.then(() => { try { imgCache.set(PosingBear.BEAR_ID, PosingBear.fullData()); } catch (e) { console.warn('Posing Buddy Bear unavailable', e); } })
+        : Promise.resolve();
 
     // Batch-fetch images for a list of ids not yet in cache
     async function prefetchSpriteImages(ids) {
+        await builtinsReady;
         const missing = ids.filter(id => !imgCache.has(id));
         if (!missing.length) return;
         const chunks = [];
@@ -1067,6 +1085,7 @@
     }
 
     async function fetchSpriteImage(id) {
+        await builtinsReady;
         if (imgCache.has(id)) return imgCache.get(id);
         try {
             const data = await restGet(GALLERY_TABLE,
@@ -1244,6 +1263,9 @@
         document.getElementById('prev-uploader').textContent = '@' + (item.creator || 'unknown');
         document.getElementById('prev-tags').innerHTML = (item.tags||[]).map(t => `<span class="prev-tag">${t}</span>`).join('') + (window.PosingStickman && PosingStickman.isRigPack(item) ? '<span class="prev-tag">✦ adjustable joints in the editor</span>' : '');
         document.getElementById('prev-actions').innerHTML = '<div style="color:var(--text-dim);font-size:11px;font-weight:700;grid-column:1/-1;padding:8px;">Loading…</div>';
+        previewActions = {}; previewFaces = null; previewTab = 'poses';
+        document.getElementById('prev-tabs').style.display = 'none';
+        document.getElementById('prev-actions-title').textContent = 'Actions / Poses';
 
         // Admin / owner controls
         const adminDiv = document.getElementById('prev-admin');
@@ -1317,18 +1339,32 @@
         const fullData = imgCache.get(item.id) || await fetchSpriteImage(item.id);
         const actions = fullData?.actions || {};
 
-        if (Object.keys(actions).length > 0) {
-            actGrid.innerHTML = '';
-            Object.entries(actions).forEach(([key, url]) => {
-                if (!url) return;
-                const chip = document.createElement('div');
-                chip.className = 'prev-action-chip';
-                chip.innerHTML = `<img src="${url}" loading="lazy"><span>${key}</span>`;
-                actGrid.appendChild(chip);
-            });
-        } else {
+        if (currentPreviewItem !== item) return; // closed or switched to another sprite while this one was loading
+        previewActions = actions;
+        previewFaces = (window.PosingStickman && PosingStickman.facesFor) ? PosingStickman.facesFor(fullData) : null; // Posing Buddy Bear: the heads you can swap
+        document.getElementById('prev-tabs').style.display = previewFaces ? 'flex' : 'none';
+        setPreviewTab('poses');
+    }
+
+    // Poses | Faces tabs next to the name (only shown for sprites that have faces)
+    let previewActions = {}, previewFaces = null, previewTab = 'poses';
+    function setPreviewTab(tab) {
+        previewTab = (tab === 'faces' && previewFaces) ? 'faces' : 'poses';
+        document.querySelectorAll('#prev-tabs .prev-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === previewTab));
+        document.getElementById('prev-actions-title').textContent = previewTab === 'faces' ? 'Faces' : 'Actions / Poses';
+        const actGrid = document.getElementById('prev-actions');
+        const items = Object.entries((previewTab === 'faces' ? previewFaces : previewActions) || {}).filter(([k, url]) => url);
+        if (!items.length) {
             actGrid.innerHTML = '<div style="color:var(--text-dim);font-size:11px;font-weight:700;grid-column:1/-1;padding:8px;">No actions</div>';
+            return;
         }
+        actGrid.innerHTML = '';
+        items.forEach(([key, url]) => {
+            const chip = document.createElement('div');
+            chip.className = 'prev-action-chip';
+            chip.innerHTML = `<img src="${url}" loading="lazy"><span>${key}</span>`;
+            actGrid.appendChild(chip);
+        });
     }
 
     function closePreview() {
