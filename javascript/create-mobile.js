@@ -6869,7 +6869,209 @@ async function _refreshCollabCurrent() {
             </div>`).join('')}`;
 }
 // end collab
+// ═══ Exporting overlay + frame verification ═══════════════════════════════════
+// Full-screen "Exporting…" screen styled like Discover's "Loading…" screen, with a % under the text.
+// % = verified frames / total frames, counted across two passes so it only ever goes up:
+//   0–50%  every frame's images are loaded and rendered strict (a missing image counts as NOT verified, gets retried)
+//   50–99% frame previews are rendered strict, uploaded, then each one is confirmed on the server
+// When everything is confirmed the gif is swapped for a big verified icon and the text changes to "Published".
+const _EXP_GIF = 'https://mmycqeejhguzhtzkyjaj.supabase.co/storage/v1/object/public/avatars/discoverimages/loading.gif';
+const _EXP_GIF_BASE_HUE = 29; // same base hue discover.js recolors from
+const _EXP_ICONS = ['fi-rs-badge-check', 'fi-rs-check-circle', 'fi-rs-shield-check']; // flaticon uicons (already loaded on create); first one that exists is used, else the inline svg
+let _expBusy = false, _expNavigating = false, _expPct = 0;
+const _expSleep = ms => new Promise(r => setTimeout(r, ms));
+
+window.addEventListener('beforeunload', e => { if (_expBusy && !_expNavigating) { e.preventDefault(); e.returnValue = ''; } });
+
+function _expHue(hex) {
+    const c = (hex || '').trim().replace('#', '');
+    if (!/^[0-9a-f]{6}$/i.test(c)) return null;
+    const r = parseInt(c.slice(0, 2), 16) / 255, g = parseInt(c.slice(2, 4), 16) / 255, b = parseInt(c.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b), d = max - Math.min(r, g, b);
+    let h = 0;
+    if (d) { if (max === r) h = 60 * (((g - b) / d) % 6); else if (max === g) h = 60 * ((b - r) / d + 2); else h = 60 * ((r - g) / d + 4); }
+    return h < 0 ? h + 360 : h;
+}
+function _expRanges(idxs) { // [11,12,13,39] -> "12–14, 40" (1-based, for people)
+    const a = [...idxs].sort((x, y) => x - y), out = [];
+    for (let i = 0; i < a.length;) {
+        let j = i; while (j + 1 < a.length && a[j + 1] === a[j] + 1) j++;
+        out.push(j > i ? (a[i] + 1) + '–' + (a[j] + 1) : String(a[i] + 1)); i = j + 1;
+    }
+    return out.join(', ');
+}
+function showExportOverlay() {
+    hideExportOverlay();
+    if (!document.getElementById('export-overlay-style')) {
+        const st = document.createElement('style'); st.id = 'export-overlay-style';
+        st.textContent = `
+#export-overlay{position:fixed;inset:0;z-index:99999;background:#0f0f11;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;text-align:center;font-family:inherit}
+#export-overlay #exp-gif{width:90px;height:90px;object-fit:contain}
+#export-overlay #exp-done{display:none;width:90px;height:90px;align-items:center;justify-content:center;font-size:90px;line-height:1;color:var(--accent,#ff7a00)}
+#export-overlay #exp-done svg{width:90px;height:90px}
+#export-overlay .exp-title{font-size:12px;font-weight:800;color:#777;letter-spacing:2px;text-transform:uppercase;animation:expPulse 1.2s ease-in-out infinite}
+#export-overlay.done .exp-title{animation:none;color:#ddd}
+#export-overlay .exp-pct{font-size:12px;font-weight:800;color:#777;letter-spacing:2px;margin-top:-8px}
+#export-overlay .exp-detail{font-size:12px;font-weight:700;color:#888;max-width:300px;line-height:1.4}
+#export-overlay .exp-actions{display:none;flex-direction:column;gap:8px;width:min(260px,70vw)}
+#export-overlay .exp-actions button{font:inherit;font-size:13px;font-weight:800;padding:11px;border-radius:12px;border:1px solid #333;background:#1c1c1e;color:#ddd;cursor:pointer}
+#export-overlay .exp-actions button.primary{background:var(--accent,#ff7a00);border-color:var(--accent,#ff7a00);color:#000}
+@keyframes expPulse{0%,100%{opacity:.25}50%{opacity:1}}`;
+        document.head.appendChild(st);
+    }
+    const el = document.createElement('div'); el.id = 'export-overlay';
+    el.innerHTML = `<img id="exp-gif" src="${_EXP_GIF}" alt=""><div id="exp-done"></div><div class="exp-title" id="exp-title">Exporting…</div>
+<div class="exp-pct" id="exp-pct">0%</div><div class="exp-detail" id="exp-detail"></div><div class="exp-actions" id="exp-actions"></div>`;
+    document.body.appendChild(el);
+    const h = _expHue(getComputedStyle(document.documentElement).getPropertyValue('--accent'));
+    if (h != null) document.getElementById('exp-gif').style.filter = `hue-rotate(${h - _EXP_GIF_BASE_HUE}deg)`;
+    _expPct = 0;
+}
+// p = 0..1 of overall work. never goes backwards (retries re-check frames but the number holds)
+function setExportPct(p) {
+    const el = document.getElementById('exp-pct'); if (!el) return;
+    _expPct = Math.max(_expPct, Math.min(1, p));
+    el.innerText = Math.floor(_expPct * 100) + '%';
+}
+// gif stops (swapped out), big verified icon in, text -> "Published"
+function finishExportOverlay(text) {
+    const root = document.getElementById('export-overlay'); if (!root) return;
+    root.classList.add('done');
+    document.getElementById('exp-gif').style.display = 'none';
+    const done = document.getElementById('exp-done');
+    let icon = null;
+    for (const c of _EXP_ICONS) { // use the first uicon that actually has a glyph
+        const i = document.createElement('i'); i.className = 'fi ' + c; done.appendChild(i);
+        const content = getComputedStyle(i, '::before').content;
+        if (content && content !== 'none' && content !== 'normal' && content !== '""') { icon = i; break; }
+        i.remove();
+    }
+    if (!icon) done.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.4 1.9 3-.2 1 2.8 2.6 1.6-.9 2.9.9 2.9-2.6 1.6-1 2.8-3-.2L12 21.5l-2.4-1.9-3 .2-1-2.8-2.6-1.6.9-2.9-.9-2.9 2.6-1.6 1-2.8 3 .2z"/><path d="M8.5 12.2l2.4 2.4 4.6-4.9"/></svg>';
+    done.style.display = 'flex';
+    document.getElementById('exp-pct').style.display = 'none';
+    document.getElementById('exp-detail').innerText = '';
+    document.getElementById('exp-title').innerText = text || 'Published';
+}
+function hideExportOverlay() { const el = document.getElementById('export-overlay'); if (el) el.remove(); }
+
+// shows what went wrong and waits for a choice: 'retry' | 'continue' | 'cancel'
+function _expAsk(message, canContinue) {
+    return new Promise(resolve => {
+        const box = document.getElementById('exp-actions'); if (!box) return resolve('cancel');
+        const title = document.getElementById('exp-title'), pct = document.getElementById('exp-pct'), detail = document.getElementById('exp-detail');
+        title.innerText = 'Some frames didn’t load'; title.style.animation = 'none'; pct.style.display = 'none'; detail.innerText = message;
+        box.innerHTML = '';
+        const add = (label, val, primary) => {
+            const b = document.createElement('button'); b.textContent = label; if (primary) b.className = 'primary';
+            b.onclick = () => { box.style.display = 'none'; detail.innerText = ''; title.innerText = 'Exporting…'; title.style.animation = ''; pct.style.display = ''; resolve(val); };
+            box.appendChild(b);
+        };
+        add('Retry', 'retry', true);
+        if (canContinue) add('Publish anyway', 'continue');
+        add('Cancel', 'cancel');
+        box.style.display = 'flex';
+    });
+}
+
+// load one url as an image, rejecting on error/timeout
+function _expLoadImg(src) {
+    return new Promise((res, rej) => {
+        const img = new Image(); img.crossOrigin = 'anonymous';
+        const t = setTimeout(() => rej(new Error('timeout')), 25000);
+        img.onload = () => { clearTimeout(t); res(); };
+        img.onerror = () => { clearTimeout(t); rej(new Error('failed')); };
+        img.src = src;
+    });
+}
+// animated frames can't be rendered to a still, so just prove every image in them loads
+async function _expPreloadFrameAssets(f) {
+    const urls = new Set();
+    if (f.background && /^(https?:|data:image)/.test(f.background)) urls.add(f.background);
+    if (f.bgFx && f.bgFx._fxSrc) urls.add(f.bgFx._fxSrc);
+    (f.layers || []).forEach(l => { if (l.type === 'img') { if (l.src) urls.add(l.src); if (l._fxSrc) urls.add(l._fxSrc); } });
+    for (const u of urls) await _expLoadImg(u);
+}
+// pass 1: every frame must fully load its images before anything is written. returns [{idx, reason}] for frames still failing after 3 tries
+async function _verifyAllFramesLoad(onProgress) {
+    const bad = [], total = frames.length;
+    let done = 0, next = 0;
+    async function check(i) {
+        const f = frames[i]; let reason = '';
+        for (let a = 0; a < 3; a++) {
+            try {
+                if (frameHasAnimatedMedia(f)) await _expPreloadFrameAssets(f);
+                else {
+                    const r = getFrameRatio(f), ar = (r && r.w && r.h) ? r.w / r.h : 1;
+                    await renderFrameToCanvas(f, ar >= 1 ? 240 : Math.round(240 * ar), ar <= 1 ? 240 : Math.round(240 / ar), { strict: true });
+                }
+                return;
+            } catch (e) { reason = (e && (e.code || e.message)) || 'error'; await _expSleep(500 * (a + 1)); }
+        }
+        bad.push({ idx: i, reason });
+    }
+    await Promise.all(Array.from({ length: Math.min(4, total) }, async () => {
+        while (next < total) { const i = next++; await check(i); done++; if (onProgress) onProgress(done, total); }
+    }));
+    return bad.sort((a, b) => a.idx - b.idx);
+}
+
+// read the published row back and confirm every frame (and layer) made it. inline rows are compared by content, storage blobs by byte size (download can be CDN-cached after an upsert)
+async function _verifyPublishedData(id, expectedFrames, storageInfo) {
+    const countLayers = a => a.reduce((n, f) => n + ((f && f.layers) || []).length, 0);
+    let info = '';
+    for (let a = 0; a < 3; a++) {
+        try {
+            if (storageInfo) {
+                const slash = storageInfo.path.lastIndexOf('/'), dir = storageInfo.path.slice(0, slash), name = storageInfo.path.slice(slash + 1);
+                const { data: files, error } = await _supabase.storage.from(_DRAFT_BUCKET).list(dir, { search: name });
+                if (error) throw error;
+                const hit = (files || []).find(x => x.name === name);
+                if (!hit) info = 'frame file missing from storage';
+                else if (typeof hit.metadata?.size === 'number' && hit.metadata.size !== storageInfo.bytes) info = 'frame file is ' + hit.metadata.size + ' bytes, expected ' + storageInfo.bytes;
+                else {
+                    const { data: row, error: e2 } = await _supabase.from('comics').select('storage_path').eq('id', id).single();
+                    if (e2) throw e2;
+                    if (row.storage_path === storageInfo.path) return { ok: true };
+                    info = 'comic row not pointing at the frame file';
+                }
+            } else {
+                const { data: row, error } = await _supabase.from('comics').select('data,storage_path').eq('id', id).single();
+                if (error) throw error;
+                const got = await resolveFramesFromRow(row);
+                if (got && got.length === expectedFrames.length && countLayers(got) === countLayers(expectedFrames)) return { ok: true };
+                info = (got ? got.length : 0) + ' of ' + expectedFrames.length + ' frames saved';
+            }
+        } catch (e) { info = (e && e.message) || 'read-back failed'; }
+        await _expSleep(800 * (a + 1));
+    }
+    return { ok: false, info };
+}
+
+// wrapper: overlay + pass 1 live here so every exit path of the real publish (_finalPublishInner) clears the overlay
 async function finalPublish() {
+    if (_expBusy) return;
+    const title = document.getElementById('pub-title').value.trim();
+    if (!title) { alert('Please enter a title.'); return; }
+    _expBusy = true; _expNavigating = false;
+    showExportOverlay();
+    try {
+        for (;;) {
+            const bad = await _verifyAllFramesLoad((d, t) => setExportPct(0.5 * d / t));
+            if (!bad.length) break;
+            console.warn('Frames with images that failed to load:', bad);
+            const choice = await _expAsk('Frame' + (bad.length > 1 ? 's ' : ' ') + _expRanges(bad.map(b => b.idx)) + ' ha' + (bad.length > 1 ? 've' : 's') + ' images that couldn’t be loaded. Publishing now could leave ' + (bad.length > 1 ? 'them' : 'it') + ' with missing art.', true);
+            if (choice === 'retry') continue;
+            if (choice === 'cancel') return;
+            setExportPct(0.5); break; // publish anyway
+        }
+        await _finalPublishInner();
+    } finally {
+        _expBusy = false;
+        if (!_expNavigating) hideExportOverlay();
+    }
+}
+
+async function _finalPublishInner() {
     const btn = document.getElementById('publish-btn');
     const title = document.getElementById('pub-title').value.trim();
     if (!title) { alert('Please enter a title.'); return; }
@@ -6967,6 +7169,12 @@ async function finalPublish() {
             }
         }
         if (error) { alert('Error: ' + error.message); btn.disabled=false; btn.innerText=editingComicId?'UPDATE':'POST NOW'; return; }
+        // read the comic back and confirm every frame is really there before the draft is touched. on failure the draft stays, and editingComicId now points at the saved row so a retry updates it instead of inserting a duplicate
+        const _vr = await _verifyPublishedData(publishedId, finalFrames, storagePathField ? { path: storagePathField, bytes: new Blob([framesJson]).size } : null);
+        if (!_vr.ok) {
+            editingComicId = publishedId;
+            throw new Error('The comic did not save completely (' + _vr.info + '). Your draft is untouched, tap publish again to retry.');
+        }
         // clean up stale blob once superseded/replaced by the fresh one written above
         if (loadedComicStoragePath && loadedComicStoragePath !== storagePathField) {
             await _supabase.storage.from(_DRAFT_BUCKET).remove([loadedComicStoragePath]).catch(() => {});
@@ -6985,17 +7193,15 @@ async function finalPublish() {
         hasUnsavedChanges = false;
         // fixed: wasn't awaiting _generateFrameSnapshots — location.href aborted the in-flight upload before it finished. Alert used to fire too early too (looked frozen on big comics); now waits for real completion and shows a corner progress ring/eta instead
         if (publishedId) {
-            const showWidget = frames.length > 20;
-            const startTime = Date.now();
-            if (showWidget) { showPublishProgressWidget(finalCoverBase64); btn.innerText = 'Finishing up…'; }
-            await _generateFrameSnapshots(publishedId, (done, total) => {
-                if (showWidget) updatePublishProgressWidget(done, total, startTime);
-            }).catch(() => {});
-            if (showWidget) hidePublishProgressWidget();
+            const snapRes = await _generateFrameSnapshots(publishedId, (d, t) => setExportPct(0.5 + 0.49 * d / t))
+                .catch(e => { console.warn('Frame snapshots failed:', e); return null; });
+            if (snapRes && snapRes.missing.length) console.warn(snapRes.missing.length + ' frame preview(s) could not be saved, reader will render them live:', snapRes.missing);
         }
-        // fixed: alert()+redirect looked frozen on mobile (native dialog is flaky, alert() blocks JS until tapped). Toast + nav right after doesn't block anything
-        showToast(editingComicId ? 'Comic updated!' : 'Published to Discover!');
-        setTimeout(() => { location.href = 'discover.html'; }, 700);
+        // everything confirmed: gif -> verified icon, text -> Published, then go
+        setExportPct(1);
+        finishExportOverlay('Published');
+        _expNavigating = true; // keeps the overlay up (and the leave-page warning off) until discover loads
+        setTimeout(() => { location.href = 'discover.html'; }, 1600);
     } catch (err) {
         console.error('finalPublish error:', err);
         hidePublishProgressWidget();
@@ -7014,68 +7220,99 @@ function frameHasAnimatedMedia(f) {
 // generates frame snapshots on mobile — renders frames, uploads jpegs, saves urls so the reader can instant-flip. animated frames get skipped on purpose, reader just falls back to a live dom render for those so the animation still plays
 async function _generateFrameSnapshots(comicId, onProgress) {
     const SNAP_SIZE = 1200;
-    // snapshot dims computed per frame (own ratio now) instead of once for the whole comic
-    let upsertRows = [];
-    let completed = 0;
-    let animatedIdx = [];
+    const total = frames.length;
+    const runStamp = Date.now(); // every url written this run ends in ?t=runStamp, so the server check can tell this run's rows from stale ones left by an earlier publish
+    const animatedIdx = [], staticIdx = [];
+    for (let i = 0; i < total; i++) (frameHasAnimatedMedia(frames[i]) ? animatedIdx : staticIdx).push(i);
+    let done = animatedIdx.length; // animated frames are never baked (see frameHasAnimatedMedia) and were already proven loadable in pass 1
+    if (onProgress) onProgress(done, total);
+    let pendingRows = [];
 
-    // flush in chunks not one big upsert (same timeout issue as the frames jsonb) — grab-and-clear is atomic in JS's single-threaded loop so it's safe to call concurrently, no row double-flushed or dropped
+    // flush in chunks not one big upsert (same timeout issue as the frames jsonb); 3 tries each, never silently dropped — anything that still fails just shows up as "missing" in the server check below
     async function flushSnapshotRows() {
-        if (!upsertRows.length) return;
-        const rows = upsertRows;
-        upsertRows = [];
-        // fixed: .upsert() thenable-only
-        await Promise.resolve(_supabase.from('frame_snapshots')
-            .upsert(rows, { onConflict: 'comic_id,frame_idx' })).catch((e) => console.warn('Snapshot batch upsert failed:', e));
+        if (!pendingRows.length) return;
+        const rows = pendingRows; pendingRows = [];
+        for (let a = 0; a < 3; a++) {
+            try {
+                const { error } = await _supabase.from('frame_snapshots').upsert(rows, { onConflict: 'comic_id,frame_idx' });
+                if (!error) return;
+                console.warn('Snapshot batch upsert failed (try ' + (a + 1) + '):', error);
+            } catch (e) { console.warn('Snapshot batch upsert threw (try ' + (a + 1) + '):', e); }
+            await _expSleep(600 * (a + 1));
+        }
     }
 
-    // render+upload in small parallel batches — mostly i/o, fully sequential would leave the app looking frozen for minutes on a several-hundred-frame comic
-    const CONCURRENT_LIMIT = 6;
-    async function processFrame(i) {
-        try {
-            if (frameHasAnimatedMedia(frames[i])) {
-                // don't bake this one — see frameHasAnimatedMedia comment above
-                animatedIdx.push(i);
-                completed++;
-                if (onProgress) onProgress(completed, frames.length);
-                return;
+    // strict render: a frame with any missing image throws instead of getting baked with a hole in it. 3 tries
+    async function snapOne(i) {
+        for (let a = 0; a < 3; a++) {
+            try {
+                const r = getFrameRatio(frames[i]);
+                const ar = (r && r.w && r.h) ? r.w / r.h : 1;
+                const snapW = ar >= 1 ? SNAP_SIZE : Math.round(SNAP_SIZE * ar);
+                const snapH = ar <= 1 ? SNAP_SIZE : Math.round(SNAP_SIZE / ar);
+                const offscreen = await renderFrameToCanvas(frames[i], snapW, snapH, { strict: true });
+                const blob = await new Promise(res => offscreen.toBlob(res, 'image/jpeg', 0.88));
+                if (!blob) throw new Error('toBlob() returned null');
+                const path = `snapshots/${comicId}/${i}.jpg`;
+                const { error: upErr } = await _supabase.storage.from('comiccore-assets').upload(path, blob, { contentType: 'image/jpeg', upsert: true });
+                if (upErr) throw upErr;
+                const { data: urlData } = _supabase.storage.from('comiccore-assets').getPublicUrl(path);
+                if (!urlData?.publicUrl) throw new Error('no public url');
+                pendingRows.push({ comic_id: comicId, frame_idx: i, url: urlData.publicUrl + '?t=' + runStamp });
+                return true;
+            } catch (e) { console.warn('Frame snapshot ' + i + ' try ' + (a + 1) + ' failed:', e); await _expSleep(500 * (a + 1)); }
+        }
+        return false;
+    }
+
+    // small parallel pool — mostly i/o, fully sequential would take minutes on a several-hundred-frame comic
+    async function runPool(list, countProgress) {
+        let next = 0;
+        await Promise.all(Array.from({ length: Math.min(6, list.length) }, async () => {
+            while (next < list.length) {
+                const i = list[next++];
+                await snapOne(i);
+                if (countProgress) { done++; if (onProgress) onProgress(done, total); }
+                if (pendingRows.length >= _SNAPSHOT_CHUNK) await flushSnapshotRows();
             }
-            const r = getFrameRatio(frames[i]);
-            const ar = (r && r.w && r.h) ? r.w / r.h : 1;
-            const snapW = ar >= 1 ? SNAP_SIZE : Math.round(SNAP_SIZE * ar);
-            const snapH = ar <= 1 ? SNAP_SIZE : Math.round(SNAP_SIZE / ar);
-            const offscreen = await renderFrameToCanvas(frames[i], snapW, snapH);
-            const blob = await new Promise(res => offscreen.toBlob(res, 'image/jpeg', 0.88));
-            if (!blob) { console.warn('Frame snapshot ' + i + ': toBlob() returned null'); return; }
-            const path = `snapshots/${comicId}/${i}.jpg`;
-            const { error: upErr } = await _supabase.storage
-                .from('comiccore-assets')
-                .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
-            if (upErr) { console.warn('Frame snapshot ' + i + ' upload failed:', upErr); return; }
-            const { data: urlData } = _supabase.storage.from('comiccore-assets').getPublicUrl(path);
-            if (urlData?.publicUrl) {
-                upsertRows.push({ comic_id: comicId, frame_idx: i, url: urlData.publicUrl + '?t=' + Date.now() });
-            }
-        } catch(e) { console.warn('Frame snapshot ' + i + ' threw — falling back to DOM render for this frame:', e); }
-        completed++;
-        if (onProgress) onProgress(completed, frames.length);
-        if (upsertRows.length >= _SNAPSHOT_CHUNK) await flushSnapshotRows();
+        }));
+        await flushSnapshotRows();
     }
 
-    for (let start = 0; start < frames.length; start += CONCURRENT_LIMIT) {
-        const batch = [];
-        for (let i = start; i < Math.min(start + CONCURRENT_LIMIT, frames.length); i++) batch.push(processFrame(i));
-        await Promise.all(batch);
+    // which static frames have THIS run's row on the server. paged, since supabase caps a select at 1000 rows
+    async function fetchConfirmedIdx() {
+        const got = new Set();
+        for (let from = 0; ; from += 1000) {
+            const { data, error } = await _supabase.from('frame_snapshots').select('frame_idx,url').eq('comic_id', comicId).order('frame_idx').range(from, from + 999);
+            if (error) throw error;
+            (data || []).forEach(r => { if (r.url && r.url.endsWith('?t=' + runStamp)) got.add(r.frame_idx); });
+            if (!data || data.length < 1000) break;
+        }
+        return got;
     }
 
-    await flushSnapshotRows();
+    await runPool(staticIdx, true);
 
-    // cleans up stale snapshots left from an earlier publish, like a frame that used to be a static image and got a jpeg but is now a gif. without this the old row keeps winning even though it should animate now
-    if (animatedIdx.length) {
-        await Promise.resolve(_supabase.from('frame_snapshots')
-            .delete().eq('comic_id', comicId).in('frame_idx', animatedIdx))
-            .catch((e) => console.warn('Stale snapshot cleanup failed:', e));
+    // verify against the server, redo whatever is missing, up to 3 rounds
+    let missing = [];
+    for (let round = 0; round <= 3; round++) {
+        let confirmed;
+        try { confirmed = await fetchConfirmedIdx(); } catch (e) { console.warn('Snapshot verify read failed:', e); break; }
+        missing = staticIdx.filter(i => !confirmed.has(i));
+        if (!missing.length || round === 3) break;
+        await runPool(missing, false);
     }
+
+    // stale rows must go or an old jpeg keeps winning over the fresh frame: animated frames, frames that never saved this time (reader falls back to live render), frames past the end if the comic got shorter
+    const stale = [...animatedIdx, ...missing];
+    for (let k = 0; k < stale.length; k += 200) {
+        await Promise.resolve(_supabase.from('frame_snapshots').delete().eq('comic_id', comicId).in('frame_idx', stale.slice(k, k + 200)))
+            .catch(e => console.warn('Stale snapshot cleanup failed:', e));
+    }
+    await Promise.resolve(_supabase.from('frame_snapshots').delete().eq('comic_id', comicId).gte('frame_idx', total))
+        .catch(e => console.warn('Trailing snapshot cleanup failed:', e));
+
+    return { total, animated: animatedIdx.length, saved: staticIdx.length - missing.length, missing };
 }
 // end frame snapshots / export
 function openExportModal() { document.getElementById('export-modal').style.display='flex'; openExportFramesTab(); }
